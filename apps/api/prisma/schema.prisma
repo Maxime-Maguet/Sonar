@@ -1,0 +1,195 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+enum CompanyType {
+  STARTUP
+  SOFTWARE_EDITOR
+  ESN
+  AGENCY
+  CORPORATE_TECH
+  UNKNOWN
+}
+
+enum TechCategory {
+  LANGUAGE
+  FRAMEWORK
+  DATABASE
+  DEVOPS
+  TOOL
+}
+
+enum SignalType {
+  JOB_POSTED
+  RECRUITMENT_ACTIVITY
+  POTENTIAL_RECRUITMENT
+  EVENT_HOSTED
+  TECHNOLOGY_DETECTED
+}
+
+enum ApplicationStatus {
+  TO_CONTACT
+  APPLY_PLANNED
+  APPLIED
+  FOLLOW_UP_NEEDED
+  INTERVIEW
+  REJECTED
+  ACCEPTED
+  ABANDONED
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  lastLoginAt  DateTime?
+  applications Application[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Company {
+  id                    String               @id @default(uuid())
+  siren                 String?              @unique
+  siretHeadquarter      String?              @unique
+  name                  String
+  slug                  String               @unique
+  websiteUrl            String?
+  description           String?
+  address               String?
+  postalCode            String?
+  city                  String               @default("Toulouse")
+  latitude              Float?
+  longitude             Float?
+  companyType           CompanyType          @default(UNKNOWN)
+  activityCode          String?
+  activityNomenclature  String?
+  activityCodeNaf25     String?
+  diffusionStatus       String?
+  technologies          CompanyTechnology[]
+  jobOpportunities      JobOpportunity[]
+  signals               RecruitmentSignal[]
+  events                EventCompany[]
+  applications          Application[]
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+}
+
+model Technology {
+  id        String              @id @default(uuid())
+  name      String              @unique
+  slug      String              @unique
+  category  TechCategory        @default(FRAMEWORK)
+  companies CompanyTechnology[]
+}
+
+model CompanyTechnology {
+  companyId    String
+  technologyId String
+  source       String
+  verifiedAt   DateTime @default(now())
+  company      Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  technology   Technology @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+
+  @@id([companyId, technologyId])
+}
+
+model RecruitmentSignal {
+  id          String     @id @default(uuid())
+  companyId   String
+  type        SignalType
+  title       String
+  description String?
+  source      String
+  externalId  String
+  detectedAt  DateTime   @default(now())
+  metadata    Json?
+  company     Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([source, externalId])
+  @@index([companyId, detectedAt])
+}
+
+model Community {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  websiteUrl  String?
+  events      Event[]
+}
+
+model Event {
+  id           String         @id @default(uuid())
+  communityId  String?
+  title        String
+  description  String?
+  startAt      DateTime
+  endAt        DateTime?
+  location     String?
+  url          String?
+  externalId   String
+  source       String
+  lastSyncedAt DateTime       @default(now())
+  community    Community?     @relation(fields: [communityId], references: [id])
+  companies    EventCompany[]
+
+  @@unique([source, externalId])
+}
+
+model EventCompany {
+  eventId   String
+  companyId String
+  event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, companyId])
+}
+
+model JobOpportunity {
+  id           String        @id @default(uuid())
+  companyId    String
+  title        String
+  url          String?
+  source       String
+  externalId   String
+  publishedAt  DateTime      @default(now())
+  isActive     Boolean       @default(true)
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  applications Application[]
+
+  @@unique([source, externalId])
+}
+
+model Application {
+  id               String                     @id @default(uuid())
+  userId           String
+  companyId        String
+  jobOpportunityId String?
+  title            String
+  status           ApplicationStatus          @default(TO_CONTACT)
+  nextFollowUpAt   DateTime?
+  notes            String?
+  user             User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company          Company                    @relation(fields: [companyId], references: [id])
+  jobOpportunity   JobOpportunity?            @relation(fields: [jobOpportunityId], references: [id])
+  history          ApplicationStatusHistory[]
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+
+  @@index([userId, status])
+}
+
+model ApplicationStatusHistory {
+  id            String            @id @default(uuid())
+  applicationId String
+  fromStatus    ApplicationStatus
+  toStatus      ApplicationStatus
+  changedAt     DateTime          @default(now())
+  note          String?
+  application   Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
