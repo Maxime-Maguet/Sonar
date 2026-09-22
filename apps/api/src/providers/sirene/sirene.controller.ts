@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Post } from '@nestjs/common';
 import { SireneService } from './sirene.service.js';
 
 @Controller('sirene')
@@ -8,5 +8,11 @@ export class SireneController {
   @Get(':siret')
   async getCompany(@Param('siret') siret: string) {
     return this.sireneService.getEtablissementBySiret(siret);
+  }
+
+  @Post(':siret/create')
+  async createCompany(@Param('siret') siret: string) {
+    console.log('1 controller siret =', siret);
+    return this.sireneService.createEtablissement(siret);
   }
 }
