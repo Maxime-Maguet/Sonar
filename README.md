@@ -94,7 +94,7 @@ Copier `.env.example` → `.env` à la **racine** (jamais commit).
 |---|---|
 | `DATABASE_URL` | Postgres (compose → `localhost:5433`) |
 | `JWT_SECRET` | Auth (plus tard) |
-| `FT_CLIENT_ID` / `FT_CLIENT_SECRET` | OAuth France Travail / LBB |
+| `FT_CLIENT_ID` / `FT_CLIENT_SECRET` | OAuth France Travail / LBB (détails : [`docs/LBB_API.md`](docs/LBB_API.md)) |
 | `INSEE_API_KEY` | Header Sirene `X-INSEE-Api-Key-Integration` |
 | `WEB_ORIGIN` | CORS du front (`http://localhost:3000`) |
 | `API_PORT` | Nest (`3001`) |
@@ -130,6 +130,6 @@ Prisma CLI (migrate, seed) : depuis `apps/api`, ou `npm run … -w api`, pour qu
 ## Sources / APIs
 
 - [API Sirene 3.11](https://portail-api.insee.fr/) — INSEE
-- [La Bonne Boîte v2](https://francetravail.io/produits-partages/catalogue/bonne-boite-v2) — France Travail
+- [La Bonne Boîte v2](https://francetravail.io/produits-partages/catalogue/bonne-boite-v2) — France Travail ; intégration Nest : [`docs/LBB_API.md`](docs/LBB_API.md)
 - Réutilisation sous **Licence Ouverte 2.0 (Etalab)** : citer la source + la date de mise à jour. Sonar **n’est pas** un service officiel INSEE / France Travail.
 - Unités en diffusion partielle `"P"` : ne pas rediffuser les infos perso, ne pas s’en servir pour prospecter.

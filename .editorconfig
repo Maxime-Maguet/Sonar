@@ -1,3 +1,8 @@
+# EditorConfig : standardise le style de fichier au niveau de l'éditeur
+# (indentation, fin de ligne, encodage) - lu nativement par VS Code/Cursor.
+# Rôle différent d'un linter : ne vérifie pas la logique du code,
+# juste la mise en forme brute des fichiers, avant même Prettier/ESLint.
+
 root = true
 
 [*]

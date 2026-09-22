@@ -32,12 +32,14 @@ Le planning 10 jours peut dépasser : on privilégie les pistes de candidature s
 
 - [x] Compte créé sur [francetravail.io](https://francetravail.io)
 - [x] Application créée (identifiant client + clé secrète obtenus)
-- [ ] **Vérifier** que l’API **La Bonne Boîte v2** est **associée** à cette application (pas seulement la clé d’appli)
-- [ ] Stocker `FT_CLIENT_ID` / `FT_CLIENT_SECRET` dans `.env` local (jamais commit)
-- [ ] Appel de test jeton OAuth (`scope` LBB, ex. `api_labonneboitev2`) puis un appel recherche Toulouse
-- [ ] Lire le contrat d’interface (params métier ROME, commune/département, champs renvoyés)
+- [x] API **La Bonne Boîte v2** associée / habilitée pour l’application
+- [x] Stocker `FT_CLIENT_ID` / `FT_CLIENT_SECRET` dans `.env` local (jamais commit)
+- [x] Appel de test Postman : token OAuth + `GET /nombreEntreprise` (Toulouse `31555`, ROME `M1805`) — **OK sept. 2026**
+- [ ] Lire le contrat complet Swagger (liste entreprises, pagination, champs SIRET) pour le provider Nest
 
 Catalogue : [La Bonne Boîte v2](https://francetravail.io/produits-partages/catalogue/bonne-boite-v2)
+
+**Référence implémentation backend** (OAuth URL, scopes, base API, exemples) : [`docs/LBB_API.md`](docs/LBB_API.md).
 
 ---
 
@@ -46,8 +48,8 @@ Catalogue : [La Bonne Boîte v2](https://francetravail.io/produits-partages/cata
 - [x] Compte [portail-api.insee.fr](https://portail-api.insee.fr/) (connexion externes)
 - [x] Application **Sonar** créée en mode **Simple** (pas mTLS / PEM)
 - [x] Souscription **API Sirene** plan **Public** — clé `X-INSEE-Api-Key-Integration` obtenue
-- [ ] Stocker la clé dans `.env` local (`INSEE_TOKEN` ou `INSEE_API_KEY`) — jamais Git, jamais le chat
-- [ ] Appel de test (un SIRET toulousain) une fois le backend en place
+- [x] Stocker la clé dans `.env` local (`INSEE_TOKEN` ou `INSEE_API_KEY`) — jamais Git, jamais le chat
+- [x] Appel de test (un SIRET toulousain) une fois le backend en place
 
 ---
 
@@ -108,7 +110,7 @@ Objectif : **remplir Explorer** comme Job2Mail (zone + NAF), **sans** enrichisse
 Objectif UX : un endroit pour voir des **pistes de candidature spontanée** (Toulouse + métier).
 
 - [ ] 4.1 Module `providers/la-bonne-boite/` isolé : fetch → normalize → upsert (le domaine ne parle pas à France Travail)
-- [ ] 4.2 OAuth2 client_credentials **côté NestJS** uniquement ; timeout, retry, rate limit ≤ **2 req/s**
+- [ ] 4.2 OAuth2 client_credentials **côté NestJS** uniquement (voir [`docs/LBB_API.md`](docs/LBB_API.md) : token `authentification-partenaire…`, scope `search office api_labonneboitev2`, base `api.francetravail.io/partenaire/labonneboite/v2`) ; timeout, retry, rate limit ≤ **2 req/s**
 - [ ] 4.3 Sync (ex. hebdo ou à la demande) : **overlay** sur l’annuaire SIRENE — une piste = une `Company` déjà là (SIREN/SIRET). Si LBB connaît un SIRET absent de l’annuaire : fiche minimale sourcée LBB, **pas** de fusion au nom.
 - [ ] 4.4 Modèle / signaux : type explicite du genre `POTENTIAL_RECRUITMENT` + `source = LA_BONNE_BOITE` + `externalId` + `detectedAt`
 - [ ] 4.5 API `GET /leads` (ou `/pistes`) : métier (ROME), zone Toulouse / couronne, pagination
