@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { normalizeEtablissement } from './sirene.normalize.js';
 
 const SIRENE_BASE_URL = 'https://api.insee.fr/api-sirene/3.11';
 
@@ -25,6 +26,7 @@ export class SireneService {
       throw new Error(`Sirene INSEE a répondu ${response.status}`);
     }
 
-    return response.json();
+    const data = await response.json();
+    return normalizeEtablissement(data);
   }
 }
