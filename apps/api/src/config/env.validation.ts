@@ -1,3 +1,6 @@
+// Active Reflect.getMetadata. class-transformer en a besoin pour lire
+// les décorateurs (@Transform, @IsString…). Nest le charge au boot,
+// pas Vitest : sans cet import, le spec plante.
 import 'reflect-metadata';
 import { plainToInstance, Transform } from 'class-transformer';
 import {
@@ -59,8 +62,12 @@ class EnvironmentVariables {
   API_PORT: number;
 }
 
+// config = process.env + le fichier .env, déjà fusionnés par ConfigModule.
 export function validate(config: Record<string, unknown>) {
+  // Copie : on ne modifie pas l'objet reçu.
   const source = { ...config };
+  // @Transform ne s'exécute pas si la clé est absente. On pose le défaut
+  // ici, avant de construire la classe. "" compte comme absent.
   if (
     source.API_PORT === undefined ||
     source.API_PORT === null ||
@@ -69,9 +76,13 @@ export function validate(config: Record<string, unknown>) {
     source.API_PORT = 3001;
   }
 
+  // plainToInstance construit un EnvironmentVariables et applique @Transform.
+  // enableImplicitConversion : "3001" (texte du .env) devient le nombre 3001.
   const validatedConfig = plainToInstance(EnvironmentVariables, source, {
     enableImplicitConversion: true,
   });
+  // validateSync lit les @IsString, @IsNotEmpty, etc.
+  // skipMissingProperties: false = une clé absente est une erreur.
   const errors = validateSync(validatedConfig, {
     skipMissingProperties: false,
   });

@@ -63,8 +63,6 @@ Hors V1 (produit **et** socle) : upload, Hunter / mails auto, SIRENE France enti
 
 ## À faire — une seule file (ouvrir le bloc, le finir, passer au suivant)
 
-**Maintenant = bloc A.**
-
 ### A — Fondations Nest (avant toute nouvelle route)
 
 - [x] Exceptions métier (`NotFound`, `BadRequest`, `UpstreamUnavailable`…) — plus de `throw new Error()`
@@ -75,7 +73,7 @@ Hors V1 (produit **et** socle) : upload, Hunter / mails auto, SIRENE France enti
 
 DTO login/register, throttle login, cookies et CORS **sont ici**, pas dans une phase « qualité ».
 
-- [ ] Hash mot de passe (argon2 ou bcrypt)
+- [x] Hash mot de passe (bcrypt, 12 rounds, via `PasswordService`)
 - [ ] JWT en cookie HttpOnly + flags (`Secure` en prod, `SameSite`, `Path`)
 - [ ] CSRF (origines `:3000` / `:3001`)
 - [ ] `POST /auth/register` `/login` `/logout` + `GET /auth/me` (`credentials: 'include'`, jamais le JWT en JS)
