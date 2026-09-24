@@ -1,5 +1,4 @@
 import { BadGatewayException } from '@nestjs/common';
-import { describe, expect, it } from 'vitest';
 import { normalizeEtablissement } from './normalize.js';
 
 function baseEtablissement(

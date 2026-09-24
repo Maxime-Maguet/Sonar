@@ -1,5 +1,4 @@
 import { BadRequestException } from '@nestjs/common';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NormalizedEtablissement } from './normalize.js';
 import { upsertCompany } from './upsert.js';
 

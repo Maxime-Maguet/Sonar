@@ -67,9 +67,9 @@ Hors V1 (produit **et** socle) : upload, Hunter / mails auto, SIRENE France enti
 
 ### A — Fondations Nest (avant toute nouvelle route)
 
-- [ ] Exceptions métier (`NotFound`, `BadRequest`, `UpstreamUnavailable`…) — plus de `throw new Error()`
-- [ ] Logger Nest structuré ; **zéro** `console.log` de fiche ; rédaction `"P"` (pas de nom/rue en log). `PrismaService` logue déjà connect / disconnect
-- [ ] Validation des env **au boot** (`DATABASE_URL`, `JWT_SECRET`, `WEB_ORIGIN`, `INSEE_API_KEY`, `FT_*`) — l’app refuse de démarrer si ça manque
+- [x] Exceptions métier (`NotFound`, `BadRequest`, `UpstreamUnavailable`…) — plus de `throw new Error()`
+- [x] Logger Nest structuré ; **zéro** `console.log` de fiche ; rédaction `"P"` (pas de nom/rue en log). `PrismaService` logue déjà connect / disconnect
+- [x] Validation des env **au boot** (`DATABASE_URL`, `JWT_SECRET`, `WEB_ORIGIN`, `INSEE_API_KEY`, `FT_*`) — l’app refuse de démarrer si ça manque
 
 ### B — Auth (bloque le CRM + ferme Sirene)
 
@@ -143,7 +143,7 @@ Pistes
   - [ ] Phrase : infos **indicatives** ; Sonar **n’est pas** un service officiel
   - [ ] Même crédit INSEE / SIRENE (source + date)
 
-Agenda / Radar *(API TTH dans la section suivante)*
+Agenda / Radar _(API TTH dans la section suivante)_
 
 - [ ] Pages `/events` et `/radar` (faits sourcés, pas de score opaque)
 
