@@ -1,3 +1,5 @@
+import { BadGatewayException } from '@nestjs/common';
+
 // Fiche Sonar (ce qu'on REND), pas le JSON brut de l'INSEE.
 export type NormalizedEtablissement = {
   siren: string;
@@ -105,7 +107,9 @@ export function normalizeEtablissement(raw: unknown): NormalizedEtablissement {
   const root = asRecord(raw);
   const etab = asRecord(root?.etablissement);
   if (!etab) {
-    throw new Error('Réponse INSEE inattendue : etablissement manquant');
+    throw new BadGatewayException(
+      'Réponse INSEE inattendue : etablissement manquant',
+    );
   }
 
   const siren = asString(etab.siren) ?? '';

@@ -1,4 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { normalizeEtablissement } from './sirene.normalize.js';
 import { upsertCompany } from './sirene.upsert.js';
@@ -16,7 +20,9 @@ export class SireneService {
   async getEtablissementBySiret(siret: string) {
     const apiKey = this.config.get<string>('INSEE_API_KEY');
     if (!apiKey) {
-      throw new Error('INSEE_API_KEY manquante');
+      throw new ServiceUnavailableException('INSEE_API_KEY manquante', {
+        cause: new Error('INSEE_API_KEY manquante'),
+      });
     }
 
     const response = await fetch(`${SIRENE_BASE_URL}/siret/${siret}`, {
@@ -28,7 +34,12 @@ export class SireneService {
     });
 
     if (!response.ok) {
-      throw new Error(`Sirene INSEE a répondu ${response.status}`);
+      throw new BadGatewayException(
+        `Sirene INSEE a répondu ${response.status}`,
+        {
+          cause: new Error(`Sirene INSEE a répondu ${response.status}`),
+        },
+      );
     }
 
     const data = await response.json();
@@ -37,7 +48,6 @@ export class SireneService {
 
   async createEtablissement(siret: string) {
     const fiche = await this.getEtablissementBySiret(siret);
-    console.log('2 fiche normalisée =', fiche);
     return upsertCompany(this.prisma, fiche);
   }
 }

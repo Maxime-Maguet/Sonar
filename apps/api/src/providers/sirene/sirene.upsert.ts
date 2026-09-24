@@ -1,13 +1,16 @@
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { NormalizedEtablissement } from './sirene.normalize.js';
+import { BadRequestException } from '@nestjs/common';
 
 export async function upsertCompany(
   prisma: PrismaService,
   fiche: NormalizedEtablissement,
 ) {
-  console.log('3 upsert reçoit siren =', fiche.siren);
   if (!fiche.siren) {
-    throw new Error('Siren is required');
+    //la donnée qu'on s'apprête à écrire est inutilisable
+    throw new BadRequestException('Siren is required', {
+      cause: new Error('Siren is required'),
+    });
   }
   const savedCompany = await prisma.company.upsert({
     where: { siren: fiche.siren },
@@ -37,6 +40,5 @@ export async function upsertCompany(
       diffusionStatus: fiche.diffusionStatus,
     },
   });
-  console.log('4 upsert retourne siren =', savedCompany.siren);
   return savedCompany;
 }

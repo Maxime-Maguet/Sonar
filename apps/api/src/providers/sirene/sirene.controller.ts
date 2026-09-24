@@ -12,7 +12,6 @@ export class SireneController {
 
   @Post(':siret/create')
   async createCompany(@Param('siret') siret: string) {
-    console.log('1 controller siret =', siret);
     return this.sireneService.createEtablissement(siret);
   }
 }
