@@ -1,5 +1,5 @@
-import { PrismaService } from '../../prisma/prisma.service.js';
-import { NormalizedEtablissement } from './sirene.normalize.js';
+import { PrismaService } from '../../../prisma/prisma.service.js';
+import { NormalizedEtablissement } from './normalize.js';
 import { BadRequestException } from '@nestjs/common';
 
 export async function upsertCompany(

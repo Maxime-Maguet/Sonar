@@ -1,14 +1,22 @@
-import { Injectable } from '@nestjs/common';
 import {
   BadGatewayException,
+  GatewayTimeoutException,
+  Injectable,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { normalizeEtablissement } from './sirene.normalize.js';
-import { upsertCompany } from './sirene.upsert.js';
+import { normalizeEtablissement } from './lib/normalize.js';
+import { upsertCompany } from './lib/upsert.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 const SIRENE_BASE_URL = 'https://api.insee.fr/api-sirene/3.11';
+
+function isTimeout(error: unknown): boolean {
+  return (
+    error instanceof DOMException &&
+    (error.name === 'TimeoutError' || error.name === 'AbortError')
+  );
+}
 
 @Injectable()
 export class SireneService {
@@ -25,13 +33,23 @@ export class SireneService {
       });
     }
 
-    const response = await fetch(`${SIRENE_BASE_URL}/siret/${siret}`, {
-      headers: {
-        Accept: 'application/json',
-        'X-INSEE-Api-Key-Integration': apiKey,
-      },
-      signal: AbortSignal.timeout(10_000),
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${SIRENE_BASE_URL}/siret/${siret}`, {
+        headers: {
+          Accept: 'application/json',
+          'X-INSEE-Api-Key-Integration': apiKey,
+        },
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch (error) {
+      if (isTimeout(error)) {
+        throw new GatewayTimeoutException(
+          'Sirene INSEE n’a pas répondu à temps',
+        );
+      }
+      throw new BadGatewayException('Sirene INSEE est injoignable');
+    }
 
     if (!response.ok) {
       throw new BadGatewayException(

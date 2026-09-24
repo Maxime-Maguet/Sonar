@@ -14,6 +14,9 @@
     "studio": "npm run prisma:studio -w api",
     "lint:web": "npm run lint -w web",
     "lint:api": "npm run lint -w api",
+    "test": "npm run test -w api --",
+    "test:api": "npm run test -w api --",
+    "test:watch": "npm run test:watch -w api --",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
