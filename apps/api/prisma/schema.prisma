@@ -44,40 +44,41 @@ enum ApplicationStatus {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  passwordHash String
-  lastLoginAt  DateTime?
-  applications Application[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id             String        @id @default(uuid())
+  email          String        @unique
+  passwordHash   String
+  lastLoginAt    DateTime?
+  sessionVersion Int           @default(0)
+  applications   Application[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 model Company {
-  id                    String               @id @default(uuid())
-  siren                 String?              @unique
-  siretHeadquarter      String?              @unique
-  name                  String
-  slug                  String               @unique
-  websiteUrl            String?
-  description           String?
-  address               String?
-  postalCode            String?
-  city                  String               @default("Toulouse")
-  latitude              Float?
-  longitude             Float?
-  companyType           CompanyType          @default(UNKNOWN)
-  activityCode          String?
-  activityNomenclature  String?
-  activityCodeNaf25     String?
-  diffusionStatus       String?
-  technologies          CompanyTechnology[]
-  jobOpportunities      JobOpportunity[]
-  signals               RecruitmentSignal[]
-  events                EventCompany[]
-  applications          Application[]
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
+  id                   String              @id @default(uuid())
+  siren                String?             @unique
+  siretHeadquarter     String?             @unique
+  name                 String
+  slug                 String              @unique
+  websiteUrl           String?
+  description          String?
+  address              String?
+  postalCode           String?
+  city                 String              @default("Toulouse")
+  latitude             Float?
+  longitude            Float?
+  companyType          CompanyType         @default(UNKNOWN)
+  activityCode         String?
+  activityNomenclature String?
+  activityCodeNaf25    String?
+  diffusionStatus      String?
+  technologies         CompanyTechnology[]
+  jobOpportunities     JobOpportunity[]
+  signals              RecruitmentSignal[]
+  events               EventCompany[]
+  applications         Application[]
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 }
 
 model Technology {
@@ -92,7 +93,7 @@ model CompanyTechnology {
   companyId    String
   technologyId String
   source       String
-  verifiedAt   DateTime @default(now())
+  verifiedAt   DateTime   @default(now())
   company      Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
   technology   Technology @relation(fields: [technologyId], references: [id], onDelete: Cascade)
 
