@@ -9,7 +9,7 @@ import {
   UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AuthGuard } from './auth.guard.js';
+import { AuthGuard } from './guards/auth.guard.js';
 import { AuthService } from './auth.service.js';
 import type { Response, Request } from 'express';
 

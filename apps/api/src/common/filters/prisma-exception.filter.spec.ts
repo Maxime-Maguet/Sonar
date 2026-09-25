@@ -1,4 +1,4 @@
-import { PrismaClientExceptionFilter } from './prisma-exeption.filter.js';
+import { PrismaClientExceptionFilter } from './prisma-exception.filter.js';
 import { Prisma } from '../../generated/prisma/client.js';
 
 function prismaError(code: string) {

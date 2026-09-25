@@ -4,8 +4,8 @@ import { PasswordService } from './password.service.js';
 import { AuthService } from './auth.service.js';
 import { ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { AuthGuard } from './auth.guard.js';
-import { CsrfGuard } from './csrf.guard.js';
+import { AuthGuard } from './guards/auth.guard.js';
+import { CsrfGuard } from './guards/csrf.guard.js';
 import { AuthController } from './auth.controller.js';
 @Module({
   imports: [

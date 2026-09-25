@@ -1,6 +1,6 @@
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthGuard } from './auth.guard.js';
+import { AuthGuard } from './guards/auth.guard.js';
 import { AuthService } from './auth.service.js';
 import { PasswordService } from './password.service.js';
 

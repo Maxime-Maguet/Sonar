@@ -1,7 +1,7 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { GUARDS_METADATA, HTTP_CODE_METADATA } from '@nestjs/common/constants';
 import { AuthController } from './auth.controller.js';
-import { AuthGuard } from './auth.guard.js';
+import { AuthGuard } from './guards/auth.guard.js';
 
 const USER_ID = '11111111-1111-4111-8111-111111111111';
 const USER = { id: USER_ID, email: 'ada@example.com' };

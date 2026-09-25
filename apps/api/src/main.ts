@@ -2,7 +2,7 @@ import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { AppModule } from './app.module.js';
-import { PrismaClientExceptionFilter } from './common/filters/prisma-exeption.filter.js';
+import { PrismaClientExceptionFilter } from './common/filters/prisma-exception.filter.js';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {

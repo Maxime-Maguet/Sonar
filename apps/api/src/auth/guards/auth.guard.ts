@@ -5,8 +5,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { AuthService } from './auth.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
+import { AuthService } from '../auth.service.js';
 
 /**
  * Guard NestJS (pare-feu) qui vérifie la présence, la validité et la version
