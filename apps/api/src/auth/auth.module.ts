@@ -3,7 +3,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { PasswordService } from './password.service.js';
 import { AuthService } from './auth.service.js';
 import { ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth.guard.js';
+import { CsrfGuard } from './csrf.guard.js';
 @Module({
   imports: [
     JwtModule.registerAsync({
@@ -14,7 +16,16 @@ import { AuthGuard } from './auth.guard.js';
       inject: [ConfigService],
     }),
   ],
-  providers: [PasswordService, AuthService, AuthGuard],
-  exports: [PasswordService, AuthService, AuthGuard],
+  providers: [
+    PasswordService,
+    AuthService,
+    AuthGuard,
+    CsrfGuard,
+    {
+      provide: APP_GUARD,
+      useClass: CsrfGuard,
+    },
+  ],
+  exports: [PasswordService, AuthService, AuthGuard, CsrfGuard],
 })
 export class AuthModule {}

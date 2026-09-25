@@ -31,6 +31,7 @@ Hors V1 (produit **et** socle) : upload, Hunter / mails auto, SIRENE France enti
   - **Statut de diffusion partielle `"P"`** (ex-non-diffusible `"N"`) : **ne pas** rediffuser les infos perso, **ne pas** les utiliser pour de la prospection (art. R123-232-1). Ça va dans le même sens que « pas Hunter / pas mail auto ».
 - **LBB = `RecruitmentSignal`**, jamais `JobOpportunity`. CRM : `Application` → `Company` (+ signal optionnel).
 - **Session V1 :** un JWT HS256 dans le cookie `sonar_session` (HttpOnly, SameSite=Lax, Path=/, Secure en prod), durée 24 h, champ `ver` = `User.sessionVersion`. Incrémenter `sessionVersion` révoque tous les tickets. Réémission glissante si le JWT a déjà vécu plus de 12 h. Refresh token = V2.
+- **CSRF V1 :** sur POST / PUT / PATCH / DELETE, `Origin` doit être strictement égal à `WEB_ORIGIN`. Pas de double-submit (cookie API illisible depuis le front). Pas de mutation sur GET.
 
 ---
 
@@ -76,7 +77,7 @@ DTO login/register, throttle login, cookies et CORS **sont ici**, pas dans une p
 
 - [x] Hash mot de passe (bcrypt, 12 rounds, via `PasswordService`)
 - [x] JWT en cookie HttpOnly + flags (`Secure` en prod, `SameSite`, `Path`)
-- [ ] CSRF (origines `:3000` / `:3001`)
+- [x] CSRF (origines `:3000` / `:3001`)
 - [ ] `POST /auth/register` `/login` `/logout` + `GET /auth/me` (`credentials: 'include'`, jamais le JWT en JS)
 - [ ] DTO + validation sur register/login
 - [ ] Throttle login

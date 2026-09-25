@@ -20,7 +20,12 @@ function cookieHost(setCookie = vi.fn(), clearCookie = vi.fn()) {
 }
 
 function authService(
-  prisma: { user: { findUnique: ReturnType<typeof vi.fn>; update?: ReturnType<typeof vi.fn> } },
+  prisma: {
+    user: {
+      findUnique: ReturnType<typeof vi.fn>;
+      update?: ReturnType<typeof vi.fn>;
+    };
+  },
   host = cookieHost(),
   jwt = jwtService(),
 ) {
@@ -61,13 +66,18 @@ describe('attachSessionToCookie', () => {
 
     service.attachSessionToCookie(res as never, 'signed-token');
 
-    expect(setCookie).toHaveBeenCalledWith(res, 'sonar_session', 'signed-token', {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24,
-      path: '/',
-    });
+    expect(setCookie).toHaveBeenCalledWith(
+      res,
+      'sonar_session',
+      'signed-token',
+      {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24,
+        path: '/',
+      },
+    );
   });
 
   it('sets secure only when NODE_ENV is production', () => {
@@ -132,7 +142,11 @@ describe('AuthGuard', () => {
     token: string | undefined,
     authorization?: string,
   ) {
-    const request: { cookies?: { sonar_session?: string }; headers: { authorization?: string }; user?: unknown } = {
+    const request: {
+      cookies?: { sonar_session?: string };
+      headers: { authorization?: string };
+      user?: unknown;
+    } = {
       cookies: token === undefined ? {} : { sonar_session: token },
       headers: authorization ? { authorization } : {},
     };
@@ -154,7 +168,11 @@ describe('AuthGuard', () => {
       cookieHost(setCookie, clearCookie),
       jwt,
     );
-    const guard = new AuthGuard(jwt, { user: { findUnique } } as never, service);
+    const guard = new AuthGuard(
+      jwt,
+      { user: { findUnique } } as never,
+      service,
+    );
 
     return { guard, context, request, res, clearCookie, setCookie, jwt };
   }
@@ -253,7 +271,11 @@ describe('bumpSessionVersion', () => {
         getResponse: () => res,
       }),
     };
-    const guard = new AuthGuard(jwt, { user: { findUnique } } as never, service);
+    const guard = new AuthGuard(
+      jwt,
+      { user: { findUnique } } as never,
+      service,
+    );
 
     await expect(guard.canActivate(context as never)).rejects.toThrow(
       UnauthorizedException,
@@ -283,7 +305,11 @@ describe('sliding reissue', () => {
         getResponse: () => res,
       }),
     };
-    const guard = new AuthGuard(jwt, { user: { findUnique } } as never, service);
+    const guard = new AuthGuard(
+      jwt,
+      { user: { findUnique } } as never,
+      service,
+    );
 
     await expect(guard.canActivate(context as never)).resolves.toBe(true);
 
