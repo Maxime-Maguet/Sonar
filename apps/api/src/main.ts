@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { AppModule } from './app.module.js';
 import { PrismaClientExceptionFilter } from './common/filters/prisma-exeption.filter.js';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,7 +22,7 @@ async function bootstrap() {
   // Protection contre les attaques XSS et autres vulnérabilités
   // Helmet aide à sécuriser l'application en définissant des en-têtes HTTP
   app.use(helmet());
-
+  app.use(cookieParser());
   // Configuration des CORS
   // Permet de contrôler les requêtes entrantes depuis différentes origines
   app.enableCors({

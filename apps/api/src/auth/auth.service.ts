@@ -1,8 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { HttpAdapterHost } from '@nestjs/core';
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { PasswordService } from './password.service.js';
 
 /**
  * Service centralisant toute la logique métier liée à l'authentification :
@@ -10,11 +15,110 @@ import { PrismaService } from '../prisma/prisma.service.js';
  */
 @Injectable()
 export class AuthService {
+  private dummyPasswordHash?: Promise<string>;
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly adapterHost: HttpAdapterHost,
     private readonly prisma: PrismaService,
+    private readonly passwordService: PasswordService,
   ) {}
+
+  async register(email: unknown, password: unknown, res: Response) {
+    if (typeof email !== 'string' || email.trim().length === 0) {
+      throw new BadRequestException('Email is required');
+    }
+    if (typeof password !== 'string' || password.trim().length === 0) {
+      throw new BadRequestException('Password is required');
+    }
+    const normalizedEmail = email.toLowerCase().trim();
+    const hashedPassword = await this.passwordService.hash(password);
+    const user = await this.prisma.user.create({
+      data: {
+        email: normalizedEmail,
+        passwordHash: hashedPassword,
+        lastLoginAt: new Date(),
+      },
+    });
+    await this.issue(user.id, res);
+    return { id: user.id, email: normalizedEmail };
+  }
+
+  async login(email: unknown, password: unknown, res: Response) {
+    if (typeof email !== 'string' || email.trim().length === 0) {
+      throw new BadRequestException('Email is required');
+    }
+    if (typeof password !== 'string') {
+      throw new BadRequestException('Password is required');
+    }
+    if (password.trim() === '') {
+      throw new UnauthorizedException();
+    }
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: {
+        id: true,
+        email: true,
+        passwordHash: true,
+      },
+    });
+    // Email inconnu : on compare quand même à un hash bcrypt (lent),
+    // sinon la 401 arrive trop vite et révèle que le compte n'existe pas.
+    const hash = user?.passwordHash ?? (await this.comparisonDummyHash());
+    const isPasswordValid = await this.passwordService.verify(password, hash);
+    if (!user || !isPasswordValid) {
+      throw new UnauthorizedException();
+    }
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+    await this.issue(user.id, res);
+    return { id: user.id, email: user.email };
+  }
+
+  /** Hash bcrypt jetable, calculé une fois : sert uniquement à égaliser le temps d'un login sur email inconnu. */
+  private comparisonDummyHash(): Promise<string> {
+    this.dummyPasswordHash ??= this.passwordService.hash('sonar-login-dummy');
+    return this.dummyPasswordHash;
+  }
+
+  async logout(token: string | undefined, res: Response): Promise<void> {
+    if (typeof token !== 'string' || token === '') {
+      this.clearSessionFromCookie(res);
+      return;
+    }
+
+    let payload: { sub: string; ver: number } | undefined;
+    try {
+      const verifiedPayload = await this.jwtService.verifyAsync(token);
+      if (
+        typeof verifiedPayload.sub === 'string' &&
+        typeof verifiedPayload.ver === 'number'
+      ) {
+        payload = { sub: verifiedPayload.sub, ver: verifiedPayload.ver };
+      }
+    } catch {
+      this.clearSessionFromCookie(res);
+      return;
+    }
+
+    if (!payload) {
+      this.clearSessionFromCookie(res);
+      return;
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { sessionVersion: true },
+    });
+    if (user?.sessionVersion === payload.ver) {
+      await this.bumpSessionVersion(payload.sub);
+    }
+    this.clearSessionFromCookie(res);
+    return;
+  }
 
   /**
    * 1. Génère un jeton JWT contenant l'identifiant de l'utilisateur
@@ -26,6 +130,7 @@ export class AuthService {
    */
   async signSession(userId: string, sessionVersion: number): Promise<string> {
     const payload = { sub: userId, ver: sessionVersion };
+
     return await this.jwtService.signAsync(payload);
   }
 
