@@ -120,6 +120,17 @@ export class AuthService {
     return;
   }
 
+  async me(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true },
+    });
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    return user;
+  }
+
   /**
    * 1. Génère un jeton JWT contenant l'identifiant de l'utilisateur
    * et la version actuelle de sa session.
@@ -142,11 +153,8 @@ export class AuthService {
    */
   attachSessionToCookie(res: Response, token: string): void {
     this.adapterHost.httpAdapter.setCookie(res, 'sonar_session', token, {
-      httpOnly: true, // Empêche l'accès au cookie via du JavaScript côté client (protection anti-XSS)
-      secure: process.env.NODE_ENV === 'production', // Envoie le cookie uniquement en HTTPS en production
-      sameSite: 'lax', // Protège contre les attaques CSRF tout en maintenant le cookie lors de redirections
-      maxAge: 60 * 60 * 24, // Durée de vie du cookie : 24 heures (Nest 12.1 : maxAge en secondes)
-      path: '/', // Le cookie est accessible sur toutes les routes de l'application
+      ...this.sessionCookieFlags(),
+      maxAge: 60 * 60 * 24, // Nest 12.1 : maxAge en secondes (24 h)
     });
   }
 
@@ -156,11 +164,20 @@ export class AuthService {
    * @param res - L'objet de réponse HTTP d'Express/Fastify
    */
   clearSessionFromCookie(res: Response): void {
-    this.adapterHost.httpAdapter.clearCookie(res, 'sonar_session', {
-      path: '/',
-      sameSite: 'lax',
+    this.adapterHost.httpAdapter.clearCookie(
+      res,
+      'sonar_session',
+      this.sessionCookieFlags(),
+    );
+  }
+
+  private sessionCookieFlags() {
+    return {
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-    });
+      sameSite: 'lax' as const,
+      path: '/',
+    };
   }
 
   /**

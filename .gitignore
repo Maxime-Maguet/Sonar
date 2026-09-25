@@ -65,6 +65,9 @@ desktop.ini
 *.swo
 *~
 
+# Local curl / session jars
+cookies.txt
+
 # Misc
 .cache/
 .parcel-cache/

@@ -122,6 +122,7 @@ describe('clearSessionFromCookie', () => {
     service.clearSessionFromCookie(res as never);
 
     expect(clearCookie).toHaveBeenCalledWith(res, 'sonar_session', {
+      httpOnly: true,
       path: '/',
       sameSite: 'lax',
       secure: true,
@@ -268,6 +269,7 @@ describe('bumpSessionVersion', () => {
       data: { sessionVersion: { increment: 1 } },
     });
     expect(clearCookie).toHaveBeenCalledWith(res, 'sonar_session', {
+      httpOnly: true,
       path: '/',
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
@@ -762,3 +764,30 @@ describe('logout', () => {
     expect(clearCookie).not.toHaveBeenCalled();
   });
 });
+
+describe('me', () => {
+  it('returns id and email only', async () => {
+    const findUnique = vi.fn().mockResolvedValue({
+      id: USER_ID,
+      email: 'ada@example.com',
+    });
+    const { service } = authService({ user: { findUnique } });
+
+    await expect(service.me(USER_ID)).resolves.toEqual({
+      id: USER_ID,
+      email: 'ada@example.com',
+    });
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { id: USER_ID },
+      select: { id: true, email: true },
+    });
+  });
+
+  it('rejects an unknown id', async () => {
+    const findUnique = vi.fn().mockResolvedValue(null);
+    const { service } = authService({ user: { findUnique } });
+
+    await expect(service.me(USER_ID)).rejects.toThrow(UnauthorizedException);
+  });
+});
+
