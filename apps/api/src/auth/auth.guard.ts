@@ -41,7 +41,10 @@ export class AuthGuard implements CanActivate {
         await this.authService.issue(payload.sub, res);
       }
       request['user'] = { sub: payload.sub, ver: payload.ver };
-    } catch {
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException();
     }
     return true;
