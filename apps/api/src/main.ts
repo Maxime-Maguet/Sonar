@@ -4,9 +4,12 @@ import helmet from 'helmet';
 import { AppModule } from './app.module.js';
 import { PrismaClientExceptionFilter } from './common/filters/prisma-exception.filter.js';
 import cookieParser from 'cookie-parser';
+import { buildCorsOptions } from './config/cors.options.js';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const config = app.get(ConfigService);
   // Filtre les erreurs Prisma pour renvoyer des messages utilisateurs clairs
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
@@ -25,12 +28,7 @@ async function bootstrap() {
   app.use(cookieParser());
   // Configuration des CORS
   // Permet de contrôler les requêtes entrantes depuis différentes origines
-  app.enableCors({
-    origin: process.env.WEB_ORIGIN ?? 'http://localhost:3000',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], // Méthodes HTTP autorisées
-    allowedHeaders: ['Content-Type', 'Authorization'], // En-têtes autorisés
-    credentials: true, // Autorise les cookies et les sessions cross-origin
-  });
+  app.enableCors(buildCorsOptions(config.getOrThrow<string>('WEB_ORIGIN')));
   // Démarrage du serveur
   const port = Number(process.env.API_PORT ?? 3001); // Port d'écoute
   await app.listen(port);
