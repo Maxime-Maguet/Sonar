@@ -22,11 +22,32 @@ describe('LoginDto', () => {
     ).toHaveLength(0);
   });
 
-  it('accepts a whitespace-only password because IsNotEmpty does not trim', () => {
+  it('accepts a password shorter than 8 characters', () => {
     expect(
-      validateLogin({ email: 'ada@example.com', password: '   ' }),
+      validateLogin({ email: 'ada@example.com', password: 'abcdefg' }),
     ).toHaveLength(0);
   });
+
+  it('keeps a short password, including surrounding spaces', () => {
+    const dto = plainToInstance(LoginDto, {
+      email: 'ada@example.com',
+      password: '  x ',
+    });
+
+    expect(dto.password).toBe('  x ');
+    expect(validateSync(dto, PIPE)).toHaveLength(0);
+  });
+
+  it.each(['   ', ' '.repeat(8)])(
+    'rejects a whitespace-only password %j',
+    (password) => {
+      const errors = validateLogin({
+        email: 'ada@example.com',
+        password,
+      });
+      expect(errors.some((error) => error.property === 'password')).toBe(true);
+    },
+  );
 
   it('trims and lowercases email before validation', () => {
     const dto = plainToInstance(LoginDto, {

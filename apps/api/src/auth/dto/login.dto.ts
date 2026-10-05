@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Matches } from 'class-validator';
 
 function trimLowerEmail({ value }: { value: unknown }): unknown {
   return typeof value === 'string' ? value.trim().toLowerCase() : value;
@@ -14,5 +14,6 @@ export class LoginDto {
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/\S/)
   password: string;
 }

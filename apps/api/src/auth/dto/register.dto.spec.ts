@@ -16,10 +16,39 @@ describe('RegisterDto', () => {
     ).toHaveLength(0);
   });
 
-  it('accepts a whitespace-only password because IsNotEmpty does not trim', () => {
+  it('keeps leading and trailing spaces in a long enough password', () => {
+    const dto = plainToInstance(RegisterDto, {
+      email: 'ada@example.com',
+      password: '  twelve chars ',
+    });
+
+    expect(dto.password).toBe('  twelve chars ');
+    expect(validateSync(dto, PIPE)).toHaveLength(0);
+  });
+
+  it.each(['   ', ' '.repeat(8)])(
+    'rejects a whitespace-only password %j',
+    (password) => {
+      const errors = validateRegister({
+        email: 'ada@example.com',
+        password,
+      });
+      expect(errors.some((error) => error.property === 'password')).toBe(true);
+    },
+  );
+
+  it('accepts a password of exactly 8 characters', () => {
     expect(
-      validateRegister({ email: 'ada@example.com', password: '   ' }),
+      validateRegister({ email: 'ada@example.com', password: 'abcdefgh' }),
     ).toHaveLength(0);
+  });
+
+  it('rejects a password shorter than 8 characters', () => {
+    const errors = validateRegister({
+      email: 'ada@example.com',
+      password: 'abcdefg',
+    });
+    expect(errors.some((error) => error.property === 'password')).toBe(true);
   });
 
   it('trims and lowercases email before validation', () => {
