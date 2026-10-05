@@ -66,28 +66,18 @@ describe('AuthController', () => {
 
   it('returns the register service value without adding fields', async () => {
     const { controller, register } = controllerWith();
+    const dto = { email: 'ada@example.com', password: 'x' };
 
-    await expect(
-      controller.register({ email: 'ada@example.com', password: 'x' }, res as never),
-    ).resolves.toEqual(USER);
+    await expect(controller.register(dto, res as never)).resolves.toEqual(USER);
     expect(register).toHaveBeenCalledWith('ada@example.com', 'x', res);
   });
 
   it('returns the login service value without adding fields', async () => {
     const { controller, login } = controllerWith();
+    const dto = { email: 'ada@example.com', password: 'x' };
 
-    await expect(
-      controller.login({ email: 'ada@example.com', password: 'x' }, res as never),
-    ).resolves.toEqual(USER);
+    await expect(controller.login(dto, res as never)).resolves.toEqual(USER);
     expect(login).toHaveBeenCalledWith('ada@example.com', 'x', res);
-  });
-
-  it('forwards a missing body as undefined email and password', async () => {
-    const { controller, register } = controllerWith();
-
-    await controller.register(undefined as never, res as never);
-
-    expect(register).toHaveBeenCalledWith(undefined, undefined, res);
   });
 
   it('forwards the session cookie to logout', async () => {

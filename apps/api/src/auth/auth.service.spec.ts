@@ -424,12 +424,17 @@ describe('register', () => {
 
   it('rejects an empty password without creating a user', async () => {
     const create = vi.fn();
-    const { service } = registerService(create);
+    const setCookie = vi.fn();
+    const { service } = authService(
+      { user: { findUnique: vi.fn(), create } },
+      cookieHost(setCookie),
+    );
 
     await expect(
       service.register('ada@example.com', '', {} as never),
     ).rejects.toThrow(BadRequestException);
     expect(create).not.toHaveBeenCalled();
+    expect(setCookie).not.toHaveBeenCalled();
   });
 
   it('rejects a password longer than 72 bytes without creating a user', async () => {
@@ -445,31 +450,6 @@ describe('register', () => {
     ).rejects.toThrow(BadRequestException);
     expect(create).not.toHaveBeenCalled();
     expect(setCookie).not.toHaveBeenCalled();
-  });
-
-  it.each(['', '   ', 12, null, undefined, { email: 'ada@example.com' }])(
-    'rejects email %j without creating a user',
-    async (email) => {
-      const create = vi.fn();
-      const { service } = registerService(create);
-
-      await expect(
-        service.register(email, 'correct horse', {} as never),
-      ).rejects.toThrow(BadRequestException);
-      expect(create).not.toHaveBeenCalled();
-    },
-  );
-
-  it('rejects a non-string password without hashing', async () => {
-    const create = vi.fn();
-    const hash = vi.fn();
-    const { service } = registerService(create, vi.fn(), hash);
-
-    await expect(
-      service.register('ada@example.com', 12, {} as never),
-    ).rejects.toThrow(BadRequestException);
-    expect(hash).not.toHaveBeenCalled();
-    expect(create).not.toHaveBeenCalled();
   });
 });
 
@@ -599,16 +579,6 @@ describe('login', () => {
     const { service } = loginService({ findUnique });
 
     await expectGeneric401(service.login('ada@example.com', '   ', {} as never));
-    expect(findUnique).not.toHaveBeenCalled();
-  });
-
-  it('rejects a non-string email without looking up the user', async () => {
-    const findUnique = vi.fn();
-    const { service } = loginService({ findUnique });
-
-    await expect(
-      service.login(12, 'correct horse', {} as never),
-    ).rejects.toThrow(BadRequestException);
     expect(findUnique).not.toHaveBeenCalled();
   });
 });

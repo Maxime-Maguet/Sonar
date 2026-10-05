@@ -11,9 +11,10 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from './guards/auth.guard.js';
 import { AuthService } from './auth.service.js';
+import { LoginDto } from './dto/login.dto.js';
+import { RegisterDto } from './dto/register.dto.js';
 import type { Response, Request } from 'express';
 
-type AuthBody = { email?: unknown; password?: unknown };
 type SessionRequest = Request & { user?: { sub: string; ver: number } };
 
 @Controller('auth')
@@ -22,19 +23,16 @@ export class AuthController {
 
   @Post('register')
   register(
-    @Body() body: AuthBody,
+    @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.register(body?.email, body?.password, res);
+    return this.authService.register(dto.email, dto.password, res);
   }
 
   @Post('login')
   @HttpCode(200)
-  login(
-    @Body() body: AuthBody,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    return this.authService.login(body?.email, body?.password, res);
+  login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    return this.authService.login(dto.email, dto.password, res);
   }
 
   @Post('logout')

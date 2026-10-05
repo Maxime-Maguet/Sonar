@@ -79,7 +79,7 @@ DTO login/register, throttle login, cookies et CORS **sont ici**, pas dans une p
 - [x] JWT en cookie HttpOnly + flags (`Secure` en prod, `SameSite`, `Path`)
 - [x] CSRF (origines `:3000` / `:3001`)
 - [x] POST /auth/register, POST /auth/login, POST /auth/logout, GET /auth/me : corps `{ id, email }` seulement (register 201, login 200, logout 204), JWT uniquement dans `sonar_session`.
-- [ ] DTO + validation sur register/login
+- [x] DTO + validation sur register/login
 - [ ] Throttle login
 - [ ] CORS : origine = `WEB_ORIGIN` uniquement, **pas** de fallback `localhost` si `NODE_ENV=production`
 - [ ] Isolation CRM par `userId` (quand le CRM existe)

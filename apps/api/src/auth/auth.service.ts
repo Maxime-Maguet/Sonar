@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { HttpAdapterHost } from '@nestjs/core';
 import { Response } from 'express';
@@ -24,13 +20,7 @@ export class AuthService {
     private readonly passwordService: PasswordService,
   ) {}
 
-  async register(email: unknown, password: unknown, res: Response) {
-    if (typeof email !== 'string' || email.trim().length === 0) {
-      throw new BadRequestException('Email is required');
-    }
-    if (typeof password !== 'string' || password.trim().length === 0) {
-      throw new BadRequestException('Password is required');
-    }
+  async register(email: string, password: string, res: Response) {
     const normalizedEmail = email.toLowerCase().trim();
     const hashedPassword = await this.passwordService.hash(password);
     const user = await this.prisma.user.create({
@@ -44,13 +34,7 @@ export class AuthService {
     return { id: user.id, email: normalizedEmail };
   }
 
-  async login(email: unknown, password: unknown, res: Response) {
-    if (typeof email !== 'string' || email.trim().length === 0) {
-      throw new BadRequestException('Email is required');
-    }
-    if (typeof password !== 'string') {
-      throw new BadRequestException('Password is required');
-    }
+  async login(email: string, password: string, res: Response) {
     if (password.trim() === '') {
       throw new UnauthorizedException();
     }
