@@ -76,15 +76,6 @@ describe('PrismaClientExceptionFilter', () => {
         getResponse: () => ({ status }),
       }),
     };
-  });
-  it('maps P9999 to a 500 without the Prisma message', () => {
-    const json = vi.fn();
-    const status = vi.fn().mockReturnValue({ json });
-    const host = {
-      switchToHttp: () => ({
-        getResponse: () => ({ status }),
-      }),
-    };
     const filter = new PrismaClientExceptionFilter();
     filter.catch(prismaError('P9999'), host as never);
     expect(status).toHaveBeenCalledWith(500);

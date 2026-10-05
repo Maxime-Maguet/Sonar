@@ -14,7 +14,9 @@ function jwtService() {
   });
 }
 
-function cookieHost(setCookie = vi.fn(), clearCookie = vi.fn()) {
+type MockFn = ReturnType<typeof vi.fn>;
+
+function cookieHost(setCookie: MockFn = vi.fn(), clearCookie: MockFn = vi.fn()) {
   return {
     httpAdapter: { setCookie, clearCookie },
   };
