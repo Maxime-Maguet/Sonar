@@ -1,6 +1,6 @@
 # La Bonne Boîte v2 — intégration backend (NestJS)
 
-Référence pour le provider `providers/la-bonne-boite/` (Phase 4). Validé en Postman (sept. 2026).
+Référence pour le module `src/la-bonne-boite/` (Phase 4). Validé en Postman (sept. 2026).
 
 Catalogue officiel : [La Bonne Boîte v2](https://francetravail.io/produits-partages/catalogue/bonne-boite-v2/documentation).
 

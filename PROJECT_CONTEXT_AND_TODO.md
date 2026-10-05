@@ -57,7 +57,7 @@ Hors V1 (produit **et** socle) : upload, Hunter / mails auto, SIRENE France enti
 - [x] Monorepo, Docker Postgres `:5433`, Nest + Next, Prisma 7, Tailwind/shadcn, `.env.example`
 - [x] Schéma Prisma + seed technologies (pas d’entreprises fictives)
 - [x] Helmet + CORS + ValidationPipe **global** dans `main.ts` (le pipe ne sert que quand il y a des DTO)
-- [x] Sirene : fetch → normalize (`"P"`) → upsert un SIRET (`providers/sirene/`)
+- [x] Sirene : fetch → normalize (`"P"`) → upsert un SIRET (`src/sirene`)
 - [x] Filtre Prisma global dans `main.ts` : JSON `statusCode`, `code`, `message` (pas de stack, pas le message Prisma)
 - [x] Docs : un seul nom `INSEE_API_KEY`
 
@@ -93,7 +93,7 @@ Dès qu’un endpoint est créé (ci-dessous) : DTO entrée, DTO **sortie** (jam
 
 ### D — Providers API (annuaire + pistes)
 
-**Sirene**
+**Sirene** — Sirene est complétée et terminée (`src/sirene`)
 
 - [x] `prisma migrate deploy` + apply Docker/CI
 - [x] Communes Toulouse + 1re couronne + NAF découverte **en config** (ex. 62.01Z, 62.02A, 58.29C, 62.09Z en NAF Rev2 ; liste ajustable, pas toute la France)
@@ -105,7 +105,7 @@ Dès qu’un endpoint est créé (ci-dessous) : DTO entrée, DTO **sortie** (jam
 
 **La Bonne Boîte**
 
-- [ ] Module `providers/la-bonne-boite/` : fetch → normalize → upsert (le domaine ne parle pas à France Travail)
+- [ ] Module `src/la-bonne-boite/` : fetch → normalize → upsert (le domaine ne parle pas à France Travail)
 - [ ] OAuth2 client_credentials **Nest seulement** (`docs/LBB_API.md`) ; cache token ; timeout ; retry ; ≤ **2 req/s** ; gérer **429**
 - [ ] Overlay : une piste = une `Company` déjà là (SIREN/SIRET). SIRET LBB absent de l’annuaire → fiche minimale sourcée LBB, **pas** de fusion au nom
 - [ ] Signal `POTENTIAL_RECRUITMENT` + `source = LA_BONNE_BOITE` + `externalId` + `detectedAt` — **pas** `JobOpportunity`

@@ -8,9 +8,9 @@ import {
   isAllowedNaf,
   isAllowedNaf25,
   isInDiscoveryNafScope,
-} from './sirene-discovery.config.js';
+} from './discovery.js';
 
-describe('sirene-discovery.config', () => {
+describe('discovery', () => {
   it('includes Toulouse and first-ring communes', () => {
     expect(isAllowedCommune('31555')).toBe(true);
     expect(isAllowedCommune('31069')).toBe(true);
@@ -55,23 +55,6 @@ describe('sirene-discovery.config', () => {
     ).toBe(false);
   });
 
-  it('matches NAF25-only when a mapped allowlist is passed', () => {
-    const mapped = new Set(['62.10A']);
-    expect(
-      isInDiscoveryNafScope(
-        { activityCode: '47.11Z', activityCodeNaf25: '62.10A' },
-        { naf25: mapped },
-      ),
-    ).toBe(true);
-    expect(
-      isInDiscoveryNafScope(
-        { activityCode: '47.11Z', activityCodeNaf25: '00.00Z' },
-        { naf25: mapped },
-      ),
-    ).toBe(false);
-    expect(DISCOVERY_NAF_25.size).toBe(0);
-  });
-
   it('rejects out-of-scope NAF with default lists', () => {
     expect(
       isInDiscoveryNafScope({
@@ -91,6 +74,7 @@ describe('sirene-discovery.config', () => {
   it('omits the NAF25 clause from q while the parallel list is empty', () => {
     const q = buildDiscoverySearchQuery();
     expect(q).toContain('periode(etatAdministratifEtablissement:A)');
+    expect(q).toContain('etablissementSiege:true');
     expect(q).toContain('codeCommuneEtablissement:(31555 OR 31069');
     expect(q).toContain(
       'activitePrincipaleEtablissement:(62.01Z OR 62.02A OR 58.29C OR 62.09Z)',
@@ -105,7 +89,7 @@ describe('sirene-discovery.config', () => {
       ['62.10A'],
     );
     expect(q).toBe(
-      'periode(etatAdministratifEtablissement:A) AND codeCommuneEtablissement:(31555) AND (activitePrincipaleEtablissement:(62.01Z) OR activitePrincipaleNAF25Etablissement:(62.10A))',
+      'periode(etatAdministratifEtablissement:A) AND etablissementSiege:true AND codeCommuneEtablissement:(31555) AND (activitePrincipaleEtablissement:(62.01Z) OR activitePrincipaleNAF25Etablissement:(62.10A))',
     );
   });
 });

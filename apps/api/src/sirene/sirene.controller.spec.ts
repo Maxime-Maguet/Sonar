@@ -9,13 +9,13 @@ import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import request from 'supertest';
-import { AuthService } from '../../auth/auth.service.js';
-import { AdminGuard } from '../../auth/guards/admin.guard.js';
-import { AuthGuard } from '../../auth/guards/auth.guard.js';
-import { PrismaService } from '../../prisma/prisma.service.js';
+import { AuthService } from '../auth/auth.service.js';
+import { AdminGuard } from '../auth/guards/admin.guard.js';
+import { AuthGuard } from '../auth/guards/auth.guard.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 import { SireneController } from './sirene.controller.js';
 import { SireneService } from './sirene.service.js';
-import { SiretPipe } from './siret.pipe.js';
+import { SiretPipe } from './sirene.controller.js';
 
 const INVALID_SIRET_MESSAGE = 'SIRET invalide : 14 chiffres attendus';
 
@@ -64,7 +64,13 @@ describe('SireneController', () => {
   });
 
   it('passes through to syncDiscovery', async () => {
-    const payload = { scanned: 0, upserted: 0, skipped: 0, skippedOutOfScope: 0 };
+    const payload = {
+      scanned: 0,
+      upserted: 0,
+      skipped: 0,
+      skippedOutOfScope: 0,
+      truncated: false,
+    };
     const syncDiscovery = vi.fn().mockResolvedValue(payload);
     const controller = new SireneController({
       syncDiscovery,
@@ -84,10 +90,10 @@ describe('SireneController', () => {
     expect(result).toBe(saved);
   });
 
-  it('leaves GET public', () => {
+  it('protects GET with AuthGuard', () => {
     expect(
       Reflect.getMetadata(GUARDS_METADATA, SireneController.prototype.getCompany),
-    ).toBeUndefined();
+    ).toEqual([AuthGuard]);
   });
 
   it('protects create with ThrottlerGuard then AuthGuard then AdminGuard', () => {
@@ -117,37 +123,52 @@ describe('SireneController', () => {
   });
 });
 
+const SIRENE_THROTTLE_BUCKETS = [
+  { name: 'login', ttl: seconds(60), limit: 5 },
+  { name: 'sireneSync', ttl: seconds(60), limit: 2 },
+] as const;
+
+async function compileSireneHttpApp(options: {
+  getEtablissementBySiret: ReturnType<typeof vi.fn>;
+  overrideAuthGuard: boolean;
+}) {
+  let builder = Test.createTestingModule({
+    imports: [ThrottlerModule.forRoot([...SIRENE_THROTTLE_BUCKETS])],
+    controllers: [SireneController],
+    providers: [
+      {
+        provide: SireneService,
+        useValue: {
+          getEtablissementBySiret: options.getEtablissementBySiret,
+          createEtablissement: vi.fn(),
+          syncDiscovery: vi.fn(),
+        },
+      },
+      { provide: JwtService, useValue: {} },
+      { provide: PrismaService, useValue: {} },
+      { provide: AuthService, useValue: {} },
+    ],
+  });
+  if (options.overrideAuthGuard) {
+    builder = builder
+      .overrideGuard(AuthGuard)
+      .useValue({ canActivate: () => true });
+  }
+  const moduleRef = await builder.compile();
+  const app = moduleRef.createNestApplication();
+  await app.init();
+  return app;
+}
+
 describe('GET /sirene/:siret (SiretPipe HTTP)', () => {
   let app: INestApplication;
   const getEtablissementBySiret = vi.fn();
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [
-        ThrottlerModule.forRoot([
-          { name: 'login', ttl: seconds(60), limit: 5 },
-          { name: 'sireneSync', ttl: seconds(60), limit: 2 },
-        ]),
-      ],
-      controllers: [SireneController],
-      providers: [
-        {
-          provide: SireneService,
-          useValue: {
-            getEtablissementBySiret,
-            createEtablissement: vi.fn(),
-            syncDiscovery: vi.fn(),
-          },
-        },
-        // Real AuthGuard/AdminGuard stay on POST; stubs only satisfy constructor DI.
-        { provide: JwtService, useValue: {} },
-        { provide: PrismaService, useValue: {} },
-        { provide: AuthService, useValue: {} },
-      ],
-    }).compile();
-
-    app = moduleRef.createNestApplication();
-    await app.init();
+    app = await compileSireneHttpApp({
+      getEtablissementBySiret,
+      overrideAuthGuard: true,
+    });
   });
 
   afterAll(async () => {
@@ -195,3 +216,29 @@ describe('GET /sirene/:siret (SiretPipe HTTP)', () => {
     expect(getEtablissementBySiret).toHaveBeenCalledTimes(3);
   });
 });
+
+describe('GET /sirene/:siret (auth)', () => {
+  let app: INestApplication;
+  const getEtablissementBySiret = vi.fn();
+
+  beforeAll(async () => {
+    app = await compileSireneHttpApp({
+      getEtablissementBySiret,
+      overrideAuthGuard: false,
+    });
+  });
+
+  afterAll(async () => {
+    await app?.close();
+  });
+
+  it('returns 401 without a session cookie and does not call SireneService', async () => {
+    const response = await request(app.getHttpServer()).get(
+      '/sirene/12345678900012',
+    );
+
+    expect(response.status).toBe(401);
+    expect(getEtablissementBySiret).not.toHaveBeenCalled();
+  });
+});
+

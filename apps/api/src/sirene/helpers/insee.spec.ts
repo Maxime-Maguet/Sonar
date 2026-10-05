@@ -1,15 +1,16 @@
 import {
   BadGatewayException,
   GatewayTimeoutException,
+  NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { buildDiscoverySearchQuery } from './sirene-discovery.config.js';
+import { buildDiscoverySearchQuery } from './discovery.js';
 import {
   SIRENE_BASE_URL,
   SIRENE_SEARCH_MAX_PAGES,
-  SireneInseeClient,
+  InseeClient,
   sireneBackoffMs,
-} from './sirene-insee.client.js';
+} from './insee.js';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return {
@@ -23,16 +24,16 @@ function errorResponse(status: number): Response {
   return { ok: false, status, json: async () => ({}) } as Response;
 }
 
-describe('SireneInseeClient', () => {
+describe('InseeClient', () => {
   const delay = vi.fn().mockResolvedValue(undefined);
   const config = { get: () => 'test-api-key' };
 
-  let client: SireneInseeClient;
+  let client: InseeClient;
   let fetchSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     delay.mockClear();
-    client = new SireneInseeClient(config as never, delay);
+    client = new InseeClient(config as never, delay);
     fetchSpy = vi.spyOn(global, 'fetch');
   });
 
@@ -41,7 +42,7 @@ describe('SireneInseeClient', () => {
   });
 
   it('does not fetch when INSEE_API_KEY is missing', async () => {
-    const noKey = new SireneInseeClient({ get: () => undefined } as never, delay);
+    const noKey = new InseeClient({ get: () => undefined } as never, delay);
     await expect(noKey.getSiret('12345678900012')).rejects.toThrow(
       ServiceUnavailableException,
     );
@@ -119,9 +120,9 @@ describe('SireneInseeClient', () => {
   it('does not retry 404', async () => {
     fetchSpy.mockResolvedValue(errorResponse(404));
 
-    await expect(client.getSiret('12345678900012')).rejects.toThrow(
-      'Sirene INSEE a répondu 404',
-    );
+    const pending = client.getSiret('12345678900012');
+    await expect(pending).rejects.toBeInstanceOf(NotFoundException);
+    await expect(pending).rejects.toThrow('Sirene INSEE a répondu 404');
     expect(fetchSpy).toHaveBeenCalledOnce();
     expect(delay).not.toHaveBeenCalled();
   });
@@ -199,9 +200,11 @@ describe('SireneInseeClient', () => {
       }),
     );
 
-    await expect(client.searchEtablissements(q)).resolves.toEqual([
-      { siret: '12345678900012' },
-    ]);
+    await expect(client.searchEtablissements(q)).resolves.toEqual({
+      etablissements: [{ siret: '12345678900012' }],
+      total: 1,
+      truncated: false,
+    });
 
     const url = new URL(String(fetchSpy.mock.calls[0]?.[0]));
     expect(url.origin + url.pathname).toBe(`${SIRENE_BASE_URL}/siret`);
@@ -243,11 +246,15 @@ describe('SireneInseeClient', () => {
         }),
       );
 
-    const rows = await client.searchEtablissements('q-test', 1);
-    expect(rows).toEqual([
-      { siret: '11111111111111' },
-      { siret: '22222222222222' },
-    ]);
+    const result = await client.searchEtablissements('q-test', 1);
+    expect(result).toEqual({
+      etablissements: [
+        { siret: '11111111111111' },
+        { siret: '22222222222222' },
+      ],
+      total: 2,
+      truncated: false,
+    });
     expect(fetchSpy).toHaveBeenCalledTimes(2);
     const secondUrl = String(fetchSpy.mock.calls[1]?.[0]);
     expect(secondUrl).toContain('debut=1');
@@ -258,7 +265,11 @@ describe('SireneInseeClient', () => {
     fetchSpy.mockResolvedValue(
       jsonResponse({ header: { total: 10 }, etablissements: [] }),
     );
-    await expect(client.searchEtablissements('q')).resolves.toEqual([]);
+    await expect(client.searchEtablissements('q')).resolves.toEqual({
+      etablissements: [],
+      total: 10,
+      truncated: true,
+    });
     expect(fetchSpy).toHaveBeenCalledOnce();
   });
 
@@ -270,8 +281,10 @@ describe('SireneInseeClient', () => {
       }),
     );
 
-    const rows = await client.searchEtablissements('q', 1);
-    expect(rows).toHaveLength(SIRENE_SEARCH_MAX_PAGES);
+    const result = await client.searchEtablissements('q', 1);
+    expect(result.etablissements).toHaveLength(SIRENE_SEARCH_MAX_PAGES);
+    expect(result.total).toBe(10_000);
+    expect(result.truncated).toBe(true);
     expect(fetchSpy).toHaveBeenCalledTimes(SIRENE_SEARCH_MAX_PAGES);
   });
 });

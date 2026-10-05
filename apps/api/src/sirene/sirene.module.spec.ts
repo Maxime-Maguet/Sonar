@@ -1,9 +1,9 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { seconds, ThrottlerModule } from '@nestjs/throttler';
-import { AuthGuard } from '../../auth/guards/auth.guard.js';
-import { PrismaModule } from '../../prisma/prisma.module.js';
-import { PrismaService } from '../../prisma/prisma.service.js';
+import { AuthGuard } from '../auth/guards/auth.guard.js';
+import { PrismaModule } from '../prisma/prisma.module.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 import { SireneModule } from './sirene.module.js';
 
 describe('SireneModule', () => {

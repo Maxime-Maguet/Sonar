@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { SiretPipe } from './siret.pipe.js';
+import { SiretPipe } from './sirene.controller.js';
 
 const INVALID_SIRET_MESSAGE = 'SIRET invalide : 14 chiffres attendus';
 

@@ -5,7 +5,7 @@ import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { HealthModule } from './health/health.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
-import { SireneModule } from './providers/sirene/sirene.module.js';
+import { SireneModule } from './sirene/sirene.module.js';
 import { validate } from './config/env.validation.js';
 import { seconds, ThrottlerModule } from '@nestjs/throttler';
 

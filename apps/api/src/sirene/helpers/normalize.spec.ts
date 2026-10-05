@@ -41,7 +41,7 @@ describe('normalizeEtablissement', () => {
       siren: '123456789',
       siret: '12345678900012',
       name: 'SARL Dupont',
-      slug: 'sarl-dupont',
+      slug: 'sarl-dupont-123456789',
       address: '12 RUE DE LA PAIX',
       postalCode: '31000',
       city: 'TOULOUSE',
@@ -50,6 +50,7 @@ describe('normalizeEtablissement', () => {
       activityCodeNaf25: '62.10A',
       communeInseeCode: '31555',
       diffusionStatus: 'O',
+      isHeadquarter: false,
     });
   });
 
@@ -64,7 +65,7 @@ describe('normalizeEtablissement', () => {
     );
 
     expect(result.name).toBe('Établissement 12345678900012');
-    expect(result.slug).toBe('etablissement-12345678900012');
+    expect(result.slug).toBe('etablissement-12345678900012-123456789');
     expect(result.address).toBeNull();
     expect(result.postalCode).toBe('31000');
     expect(result.city).toBe('TOULOUSE');
@@ -77,6 +78,30 @@ describe('normalizeEtablissement', () => {
     expect(() => normalizeEtablissement({})).toThrow(
       'Réponse INSEE inattendue : etablissement manquant',
     );
+  });
+
+  it('throws BadGatewayException when siren or siret is missing', () => {
+    expect(() =>
+      normalizeEtablissement(baseEtablissement({ siren: '' })),
+    ).toThrow(BadGatewayException);
+    expect(() =>
+      normalizeEtablissement(baseEtablissement({ siret: '   ' })),
+    ).toThrow('Réponse INSEE inattendue : siren ou siret manquant');
+  });
+
+  it('parses etablissementSiege as boolean', () => {
+    expect(
+      normalizeEtablissement(baseEtablissement({ etablissementSiege: true }))
+        .isHeadquarter,
+    ).toBe(true);
+    expect(
+      normalizeEtablissement(baseEtablissement({ etablissementSiege: 'true' }))
+        .isHeadquarter,
+    ).toBe(true);
+    expect(
+      normalizeEtablissement(baseEtablissement({ etablissementSiege: false }))
+        .isHeadquarter,
+    ).toBe(false);
   });
 
   it('prefers periode NAF25 over uniteLegale NAF25', () => {
