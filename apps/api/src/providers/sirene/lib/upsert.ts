@@ -2,16 +2,18 @@ import { PrismaService } from '../../../prisma/prisma.service.js';
 import { NormalizedEtablissement } from './normalize.js';
 import { BadRequestException } from '@nestjs/common';
 
+export const COMPANY_SOURCE_SIRENE = 'SIRENE_INSEE';
+
 export async function upsertCompany(
   prisma: PrismaService,
   fiche: NormalizedEtablissement,
 ) {
   if (!fiche.siren) {
-    //la donnée qu'on s'apprête à écrire est inutilisable
     throw new BadRequestException('Siren is required', {
       cause: new Error('Siren is required'),
     });
   }
+  const lastSyncedAt = new Date();
   const savedCompany = await prisma.company.upsert({
     where: { siren: fiche.siren },
     create: {
@@ -26,6 +28,9 @@ export async function upsertCompany(
       activityNomenclature: fiche.activityNomenclature,
       activityCodeNaf25: fiche.activityCodeNaf25,
       diffusionStatus: fiche.diffusionStatus,
+      source: COMPANY_SOURCE_SIRENE,
+      externalId: fiche.siren,
+      lastSyncedAt,
     },
     update: {
       siretHeadquarter: fiche.siret,
@@ -38,6 +43,9 @@ export async function upsertCompany(
       activityNomenclature: fiche.activityNomenclature,
       activityCodeNaf25: fiche.activityCodeNaf25,
       diffusionStatus: fiche.diffusionStatus,
+      source: COMPANY_SOURCE_SIRENE,
+      externalId: fiche.siren,
+      lastSyncedAt,
     },
   });
   return savedCompany;

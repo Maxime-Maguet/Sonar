@@ -12,6 +12,7 @@ export type NormalizedEtablissement = {
   activityCode: string | null;
   activityNomenclature: string | null;
   activityCodeNaf25: string | null;
+  communeInseeCode: string | null;
   diffusionStatus: string | null;
 };
 
@@ -142,6 +143,7 @@ export function normalizeEtablissement(raw: unknown): NormalizedEtablissement {
       periode?.nomenclatureActivitePrincipaleEtablissement,
     ),
     activityCodeNaf25: pickNaf25(periode, unite),
+    communeInseeCode: asString(adresse?.codeCommuneEtablissement),
     diffusionStatus,
   };
 }

@@ -82,26 +82,26 @@ DTO login/register, throttle login, cookies et CORS **sont ici**, pas dans une p
 - [x] DTO + validation sur register/login
 - [x] Throttle login
 - [x] CORS : origine = `WEB_ORIGIN` uniquement, **pas** de fallback `localhost` si `NODE_ENV=production`
-- [ ] Isolation CRM par `userId` (quand le CRM existe). Unicité `(userId, companyId)` déjà en base ; le scoping des requêtes reste au CRUD
+- [ ] Isolation CRM par `userId` (quand le CRM existe). Unicité `(userId, companyId)` déjà en base ; le scoping des requêtes reste au CRUD (en attente)
 - [x] Couper `POST /sirene/:siret/create` public (session + rôle `ADMIN` en base, relu à chaque appel ; `GET /sirene/:siret` reste public)
 
 ### C — Contrats HTTP
 
 Dès qu’un endpoint est créé (ci-dessous) : DTO entrée, DTO **sortie** (jamais Prisma brut), pipe, pagination bornée. Pas un chantier séparé.
 
-- [ ] Sirene : pipe SIRET 14 chiffres + DTO de sortie (la GET de test peut rester)
+- [x] Sirene : pipe SIRET 14 chiffres + DTO de sortie (la GET de test peut rester)
 
 ### D — Providers API (annuaire + pistes)
 
 **Sirene**
 
-- [ ] `prisma migrate deploy` + apply Docker/CI
-- [ ] Communes Toulouse + 1re couronne + NAF découverte **en config** (ex. 62.01Z, 62.02A, 58.29C, 62.09Z en NAF Rev2 ; liste ajustable, pas toute la France)
-- [ ] Garder APE + nomenclature (`NAFRev2` / `NAF25`) ; ne pas filtrer comme si les codes 2026 restaient valides après janv. 2027
-- [ ] Retry / backoff (429, 5xx, timeout) ; throttle de sync
-- [ ] `Company.source` + `lastSyncedAt` (crédit Etalab, pas seulement `updatedAt`)
-- [ ] Index listes : `city`, `activityCode`, `companyType` (quand Explorer existe)
-- [ ] Tests mock : normalize `"P"`, upsert SIREN, **aucun** appel INSEE réel
+- [x] `prisma migrate deploy` + apply Docker/CI
+- [x] Communes Toulouse + 1re couronne + NAF découverte **en config** (ex. 62.01Z, 62.02A, 58.29C, 62.09Z en NAF Rev2 ; liste ajustable, pas toute la France)
+- [x] Garder APE + nomenclature (`NAFRev2` / `NAF25`) ; ne pas filtrer comme si les codes 2026 restaient valides après janv. 2027
+- [x] Retry / backoff (429, 5xx, timeout) ; throttle de sync
+- [x] `Company.source` + `lastSyncedAt` (crédit Etalab, pas seulement `updatedAt`)
+- [x] Index listes : `city`, `activityCode`, `companyType` (quand Explorer existe)
+- [x] Tests mock : normalize `"P"`, upsert SIREN, **aucun** appel INSEE réel
 
 **La Bonne Boîte**
 
@@ -169,4 +169,4 @@ CRM
 
 ---
 
-**Prochain code : bloc C** — pipe SIRET + DTO de sortie Sirene. L’isolation des lectures CRM reste au CRUD (section F) ; `POST /sirene/:siret/create` est réservé aux admins.
+**Prochain code : LBB / bloc E** — provider La Bonne Boîte, puis health. Ne pas rouvrir Sirene sauf bug.

@@ -18,6 +18,7 @@ function baseEtablissement(
         libelleVoieEtablissement: 'DE LA PAIX',
         codePostalEtablissement: '31000',
         libelleCommuneEtablissement: 'TOULOUSE',
+        codeCommuneEtablissement: '31555',
       },
       periodesEtablissement: [
         {
@@ -47,6 +48,7 @@ describe('normalizeEtablissement', () => {
       activityCode: '62.01Z',
       activityNomenclature: 'NAFRev2',
       activityCodeNaf25: '62.10A',
+      communeInseeCode: '31555',
       diffusionStatus: 'O',
     });
   });

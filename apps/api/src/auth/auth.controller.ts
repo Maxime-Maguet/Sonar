@@ -14,7 +14,7 @@ import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
 import type { Response, Request } from 'express';
-import { seconds, Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { seconds, SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 type SessionRequest = Request & { user?: { sub: string; ver: number } };
 
@@ -33,6 +33,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   @UseGuards(ThrottlerGuard)
+  @SkipThrottle({ sireneSync: true })
   @Throttle({ login: { limit: 5, ttl: seconds(60) } })
   login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     return this.authService.login(dto.email, dto.password, res);

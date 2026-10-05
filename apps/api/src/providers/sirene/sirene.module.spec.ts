@@ -19,6 +19,7 @@ describe('SireneModule', () => {
         }),
         ThrottlerModule.forRoot([
           { name: 'login', ttl: seconds(60), limit: 5 },
+          { name: 'sireneSync', ttl: seconds(60), limit: 2 },
         ]),
         PrismaModule,
         SireneModule,

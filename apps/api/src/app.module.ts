@@ -11,7 +11,10 @@ import { seconds, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
-    ThrottlerModule.forRoot([{ name: 'login', ttl: seconds(60), limit: 5 }]),
+    ThrottlerModule.forRoot([
+      { name: 'login', ttl: seconds(60), limit: 5 },
+      { name: 'sireneSync', ttl: seconds(60), limit: 2 },
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '../../.env'],

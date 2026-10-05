@@ -1,7 +1,13 @@
-import { INestApplication } from '@nestjs/common';
-import { GUARDS_METADATA, ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
+import { INestApplication, RequestMethod } from '@nestjs/common';
+import {
+  GUARDS_METADATA,
+  METHOD_METADATA,
+  PATH_METADATA,
+  ROUTE_ARGS_METADATA,
+} from '@nestjs/common/constants';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
+import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import request from 'supertest';
 import { AuthService } from '../../auth/auth.service.js';
 import { AdminGuard } from '../../auth/guards/admin.guard.js';
@@ -45,6 +51,28 @@ describe('SireneController', () => {
     expect(result).toBe(fiche);
   });
   // test unitaire pour la méthode createCompany
+  it('declares POST sync before the parametric GET', () => {
+    expect(
+      Reflect.getMetadata(PATH_METADATA, SireneController.prototype.syncDiscovery),
+    ).toBe('sync');
+    expect(
+      Reflect.getMetadata(
+        METHOD_METADATA,
+        SireneController.prototype.syncDiscovery,
+      ),
+    ).toBe(RequestMethod.POST);
+  });
+
+  it('passes through to syncDiscovery', async () => {
+    const payload = { scanned: 0, upserted: 0, skipped: 0, skippedOutOfScope: 0 };
+    const syncDiscovery = vi.fn().mockResolvedValue(payload);
+    const controller = new SireneController({
+      syncDiscovery,
+    } as never);
+    await expect(controller.syncDiscovery()).resolves.toBe(payload);
+    expect(syncDiscovery).toHaveBeenCalledOnce();
+  });
+
   it('passes the siret param to createEtablissement', async () => {
     const saved = { id: 'company-1' };
     const createEtablissement = vi.fn().mockResolvedValue(saved);
@@ -62,13 +90,22 @@ describe('SireneController', () => {
     ).toBeUndefined();
   });
 
-  it('protects create with AuthGuard then AdminGuard', () => {
+  it('protects create with ThrottlerGuard then AuthGuard then AdminGuard', () => {
     expect(
       Reflect.getMetadata(
         GUARDS_METADATA,
         SireneController.prototype.createCompany,
       ),
-    ).toEqual([AuthGuard, AdminGuard]);
+    ).toEqual([ThrottlerGuard, AuthGuard, AdminGuard]);
+  });
+
+  it('protects sync with ThrottlerGuard then AuthGuard then AdminGuard', () => {
+    expect(
+      Reflect.getMetadata(
+        GUARDS_METADATA,
+        SireneController.prototype.syncDiscovery,
+      ),
+    ).toEqual([ThrottlerGuard, AuthGuard, AdminGuard]);
   });
 
   it('applies SiretPipe to the GET siret param', () => {
@@ -86,6 +123,12 @@ describe('GET /sirene/:siret (SiretPipe HTTP)', () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
+      imports: [
+        ThrottlerModule.forRoot([
+          { name: 'login', ttl: seconds(60), limit: 5 },
+          { name: 'sireneSync', ttl: seconds(60), limit: 2 },
+        ]),
+      ],
       controllers: [SireneController],
       providers: [
         {
@@ -93,6 +136,7 @@ describe('GET /sirene/:siret (SiretPipe HTTP)', () => {
           useValue: {
             getEtablissementBySiret,
             createEtablissement: vi.fn(),
+            syncDiscovery: vi.fn(),
           },
         },
         // Real AuthGuard/AdminGuard stay on POST; stubs only satisfy constructor DI.
@@ -135,5 +179,19 @@ describe('GET /sirene/:siret (SiretPipe HTTP)', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual(fiche);
     expect(getEtablissementBySiret).toHaveBeenCalledWith('12345678900012');
+  });
+
+  it('is not throttled by sireneSync after three GETs', async () => {
+    getEtablissementBySiret.mockResolvedValue({
+      siren: '123456789',
+      siret: '12345678900012',
+    });
+    const server = app.getHttpServer();
+
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      const response = await request(server).get('/sirene/12345678900012');
+      expect(response.status, `attempt ${attempt}`).toBe(200);
+    }
+    expect(getEtablissementBySiret).toHaveBeenCalledTimes(3);
   });
 });

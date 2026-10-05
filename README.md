@@ -108,6 +108,7 @@ Depuis `sonar/` :
 ```bash
 cp .env.example .env   # une fois ; coller tes clés localement
 npm run docker:up
+npm run prisma:migrate:deploy -w api   # applique les migrations déjà commitées (Postgres doit tourner)
 npm run dev            # web :3000 + api :3001
 ```
 
@@ -123,7 +124,11 @@ npm run build -w api
 
 Santé API : `GET http://localhost:3001/health` → `{ "status": "ok" }`.
 
-Prisma CLI (migrate, seed) : depuis `apps/api`, ou `npm run … -w api`, pour que `prisma.config.ts` charge le `.env` racine.
+Prisma CLI : depuis `apps/api`, ou `npm run … -w api`, pour que `prisma.config.ts` charge le `.env` racine.
+
+- `npm run prisma:migrate -w api` — développement : peut **créer** un fichier de migration.
+- `npm run prisma:migrate:deploy -w api` — applique les fichiers déjà présents, sans en inventer (Docker Postgres `:5433` allumé). C’est la commande à utiliser une fois la base démarrée, et plus tard en CI.
+- La CI GitHub Actions (`.github/workflows/api.yml`) lance `prisma migrate deploy` puis les tests unitaires `api` sur Postgres 16 (port 5432).
 
 ---
 

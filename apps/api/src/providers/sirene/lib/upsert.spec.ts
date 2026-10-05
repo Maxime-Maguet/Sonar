@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import type { NormalizedEtablissement } from './normalize.js';
-import { upsertCompany } from './upsert.js';
+import { COMPANY_SOURCE_SIRENE, upsertCompany } from './upsert.js';
 
 function fiche(
   overrides: Partial<NormalizedEtablissement> = {},
@@ -16,6 +16,7 @@ function fiche(
     activityCode: '62.01Z',
     activityNomenclature: 'NAFRev2',
     activityCodeNaf25: '62.10A',
+    communeInseeCode: '31555',
     diffusionStatus: 'O',
     ...overrides,
   };
@@ -57,6 +58,9 @@ describe('upsertCompany', () => {
         activityNomenclature: 'NAFRev2',
         activityCodeNaf25: '62.10A',
         diffusionStatus: 'O',
+        source: COMPANY_SOURCE_SIRENE,
+        externalId: '123456789',
+        lastSyncedAt: expect.any(Date),
       },
       update: {
         siretHeadquarter: '12345678900012',
@@ -69,7 +73,11 @@ describe('upsertCompany', () => {
         activityNomenclature: 'NAFRev2',
         activityCodeNaf25: '62.10A',
         diffusionStatus: 'O',
+        source: COMPANY_SOURCE_SIRENE,
+        externalId: '123456789',
+        lastSyncedAt: expect.any(Date),
       },
     });
+    expect(COMPANY_SOURCE_SIRENE).toBe('SIRENE_INSEE');
   });
 });
