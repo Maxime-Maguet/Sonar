@@ -1,5 +1,6 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { GUARDS_METADATA, HTTP_CODE_METADATA } from '@nestjs/common/constants';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { AuthController } from './auth.controller.js';
 import { AuthGuard } from './guards/auth.guard.js';
 
@@ -55,13 +56,19 @@ describe('AuthController', () => {
     ).toContain(AuthGuard);
   });
 
-  it('does not attach AuthGuard to register or login', () => {
+  it('does not attach a guard to register', () => {
     expect(
       Reflect.getMetadata(GUARDS_METADATA, AuthController.prototype.register),
     ).toBeUndefined();
-    expect(
-      Reflect.getMetadata(GUARDS_METADATA, AuthController.prototype.login),
-    ).toBeUndefined();
+  });
+
+  it('throttles login with ThrottlerGuard and does not attach AuthGuard', () => {
+    const guards = Reflect.getMetadata(
+      GUARDS_METADATA,
+      AuthController.prototype.login,
+    );
+    expect(guards).toEqual([ThrottlerGuard]);
+    expect(guards).not.toContain(AuthGuard);
   });
 
   it('returns the register service value without adding fields', async () => {
