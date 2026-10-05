@@ -4,6 +4,7 @@ import { PasswordService } from './password.service.js';
 import { AuthService } from './auth.service.js';
 import { ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { AdminGuard } from './guards/admin.guard.js';
 import { AuthGuard } from './guards/auth.guard.js';
 import { CsrfGuard } from './guards/csrf.guard.js';
 import { AuthController } from './auth.controller.js';
@@ -21,6 +22,7 @@ import { AuthController } from './auth.controller.js';
     PasswordService,
     AuthService,
     AuthGuard,
+    AdminGuard,
     CsrfGuard,
     {
       provide: APP_GUARD,
@@ -28,6 +30,6 @@ import { AuthController } from './auth.controller.js';
     },
   ],
   controllers: [AuthController],
-  exports: [PasswordService, AuthService, AuthGuard, CsrfGuard],
+  exports: [PasswordService, AuthService, AuthGuard, AdminGuard, CsrfGuard, JwtModule],
 })
 export class AuthModule {}

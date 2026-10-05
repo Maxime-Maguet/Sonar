@@ -30,7 +30,7 @@ Hors V1 (produit **et** socle) : upload, Hunter / mails auto, SIRENE France enti
   - On interroge **unités légales (SIREN)** + **établissements (SIRET)** : la géo Toulouse = l’établissement.
   - **Statut de diffusion partielle `"P"`** (ex-non-diffusible `"N"`) : **ne pas** rediffuser les infos perso, **ne pas** les utiliser pour de la prospection (art. R123-232-1). Ça va dans le même sens que « pas Hunter / pas mail auto ».
 - **LBB = `RecruitmentSignal`**, jamais `JobOpportunity`. CRM : `Application` → `Company` (+ signal optionnel).
-- **Session V1 :** un JWT HS256 dans le cookie `sonar_session` (HttpOnly, SameSite=Lax, Path=/, Secure en prod), durée 24 h, champ `ver` = `User.sessionVersion`. Incrémenter `sessionVersion` révoque tous les tickets. Réémission glissante si le JWT a déjà vécu plus de 12 h. Refresh token = V2. Logout efface toujours le cookie et n'incrémente `sessionVersion` que si le JWT est encore valide et `ver` correspond ; email stocké en trim+lowercase ; échec de login = une seule 401 ; `cookie-parser` remplit `request.cookies`. DTO et throttle restent les cases suivantes.
+- **Session V1 :** un JWT HS256 dans le cookie `sonar_session` (HttpOnly, SameSite=Lax, Path=/, Secure en prod), durée 24 h, champ `ver` = `User.sessionVersion`. Incrémenter `sessionVersion` révoque tous les tickets. Réémission glissante si le JWT a déjà vécu plus de 12 h. Refresh token = V2. Logout efface toujours le cookie et n'incrémente `sessionVersion` que si le JWT est encore valide et `ver` correspond ; email stocké en trim+lowercase ; échec de login = une seule 401 ; `cookie-parser` remplit `request.cookies`. DTO, throttle login et CORS `WEB_ORIGIN` sont en place.
 - **CSRF V1 :** sur POST / PUT / PATCH / DELETE, `Origin` doit être strictement égal à `WEB_ORIGIN`. Pas de double-submit (cookie API illisible depuis le front). Pas de mutation sur GET.
 
 ---
@@ -80,10 +80,10 @@ DTO login/register, throttle login, cookies et CORS **sont ici**, pas dans une p
 - [x] CSRF (origines `:3000` / `:3001`)
 - [x] POST /auth/register, POST /auth/login, POST /auth/logout, GET /auth/me : corps `{ id, email }` seulement (register 201, login 200, logout 204), JWT uniquement dans `sonar_session`.
 - [x] DTO + validation sur register/login
-- [ ] Throttle login
-- [ ] CORS : origine = `WEB_ORIGIN` uniquement, **pas** de fallback `localhost` si `NODE_ENV=production`
-- [ ] Isolation CRM par `userId` (quand le CRM existe)
-- [ ] Couper `POST /sirene/:siret/create` public (guard admin / sync, ou route retirée jusqu’au job)
+- [x] Throttle login
+- [x] CORS : origine = `WEB_ORIGIN` uniquement, **pas** de fallback `localhost` si `NODE_ENV=production`
+- [ ] Isolation CRM par `userId` (quand le CRM existe). Unicité `(userId, companyId)` déjà en base ; le scoping des requêtes reste au CRUD
+- [x] Couper `POST /sirene/:siret/create` public (session + rôle `ADMIN` en base, relu à chaque appel ; `GET /sirene/:siret` reste public)
 
 ### C — Contrats HTTP
 
@@ -153,7 +153,7 @@ CRM
 - [ ] Kanban `/crm` (8 statuts, drag & drop)
 - [ ] Dashboard : relances du jour, pistes/nouveautés, events 7 jours
 - [ ] Création de candidature **depuis une piste LBB** (lien `Company` + signal, pas une « offre »)
-- [ ] Unique métier : une carte par `(userId, companyId)` (pas deux Kanban pour la même boîte)
+- [ ] Unique métier : une carte par `(userId, companyId)` (contrainte SQL en place ; le CRUD doit s’y appuyer)
 - [ ] Suppression compte / données CRM (hard-delete User + candidatures ; **pas** de `deletedAt` sur l’annuaire)
 
 ### G — CI
@@ -169,4 +169,4 @@ CRM
 
 ---
 
-**Prochain code : bloc A seulement.** Les écrans (F) ne sont pas oubliés : ils viennent après auth + providers, avec la même liste qu’avant.
+**Prochain code : bloc C** — pipe SIRET + DTO de sortie Sirene. L’isolation des lectures CRM reste au CRUD (section F) ; `POST /sirene/:siret/create` est réservé aux admins.

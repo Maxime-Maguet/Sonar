@@ -1,4 +1,6 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../../auth/guards/auth.guard.js';
+import { AdminGuard } from '../../auth/guards/admin.guard.js';
 import { SireneService } from './sirene.service.js';
 
 @Controller('sirene')
@@ -11,6 +13,7 @@ export class SireneController {
   }
 
   @Post(':siret/create')
+  @UseGuards(AuthGuard, AdminGuard)
   async createCompany(@Param('siret') siret: string) {
     return this.sireneService.createEtablissement(siret);
   }

@@ -43,12 +43,18 @@ enum ApplicationStatus {
   ABANDONED
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id             String        @id @default(uuid())
   email          String        @unique
   passwordHash   String
   lastLoginAt    DateTime?
   sessionVersion Int           @default(0)
+  role           UserRole      @default(USER)
   applications   Application[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -182,6 +188,7 @@ model Application {
   createdAt        DateTime                   @default(now())
   updatedAt        DateTime                   @updatedAt
 
+  @@unique([userId, companyId])
   @@index([userId, status])
 }
 
