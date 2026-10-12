@@ -5,16 +5,17 @@ Le planning 10 jours peut dépasser : on privilégie les pistes de candidature s
 
 **Échelle :** Explorer + Pistes LBB + agenda + CRM perso. Pas un deuxième produit. Une seule liste ci-dessous, **dans l’ordre**. On ne stocke plus le socle Nest (DTO, env, erreurs) dans une « phase 6 qualité » à la fin.
 
-Hors V1 (produit **et** socle) : upload, Hunter / mails auto, SIRENE France entière, score maison, multi-villes, API publique, circuit breaker, refresh tokens, versioning `/v1`, soft-delete annuaire, K8s.
+Hors V1 (produit **et** socle) : upload, Hunter / mails auto, SIRENE France entière, score calculé par Sonar, multi-villes, API publique, circuit breaker, refresh tokens, versioning `/v1`, soft-delete annuaire, K8s. Le potentiel d’embauche **France Travail** (0–100), lui, est en V1.
 
 ---
 
 ## Décisions figées (ne plus rediscuter)
 
-- **Produit :** cartographie tech Toulouse + signaux + agenda + CRM perso + **pistes spontanées**.
+- **Produit :** centraliser les entreprises tech de Toulouse, et parmi elles celles qui peuvent embaucher. Agenda + CRM perso en plus. Pas un job board.
 - **Deux couches données (cœur V1) :**
-  1. **SIRENE ciblé** (Toulouse + 1re couronne + quelques codes NAF) = **remplit l’annuaire**. Le NAF sert à découvrir des entreprises, pas à dire « elles recrutent ».
-  2. **La Bonne Boîte** = **marque qui est une piste** (potentiel d’embauche ~6 mois). Relier par SIREN/SIRET. Le NAF ne dit pas ça.
+  1. **SIRENE ciblé** (Toulouse + 1re couronne + quelques codes NAF) = **l’annuaire**. Le NAF sert à découvrir des entreprises, pas à dire « elles recrutent ».
+  2. **La Bonne Boîte** = **qui peut embaucher** pour un métier, sur ~6 mois. Relier par SIREN/SIRET. Une société sans signal reste une fiche d’annuaire. Une société avec un signal `POTENTIAL_RECRUITMENT` est une piste pour ce ROME.
+- **Potentiel France Travail en V1** (rouvert le 12 oct. 2026, OpenAPI LBB v2.27.3) : `hiring_potential` est un nombre **0–100** (ou absent). `is_high_potential` est un booléen (ou absent) : « fort potentiel », pas « cette ligne n’est pas une piste ». L’exemple officiel du schéma est une entreprise renvoyée par `/recherche` avec `is_high_potential: false`. On **garde** les deux sur le signal et on les **affiche** dans `GET /leads` et sur `/pistes`, toujours attribués à La Bonne Boîte. On ne recalcule pas, on ne filtre pas les `false`. L’ordre de la liste reste celui de France Travail (score décroissant).
 - **Pas un job board.** Les pistes LBB = potentiel d’embauche, pas des offres.
 - **Pas Job2Mail :** pas de Hunter, pas de chasse aux mails de dirigeants, pas d’envoi / relance automatique.
 - **La Bonne Boîte = V1.** L’app doit quand même rester utilisable si l’API est down (Explorer, events, CRM). Idem si SIRENE est down : l’annuaire déjà importé reste lisible.
@@ -135,7 +136,7 @@ Explorer & fiches
 
 Pistes
 
-- [ ] Page `/pistes` : liste, filtres métier, mention « ce n’est pas une offre d’emploi », bouton Ajouter au CRM (`TO_CONTACT`)
+- [ ] Page `/pistes` : liste, filtres métier, potentiel France Travail (0–100) et repère « fort potentiel », mention « ce n’est pas une offre d’emploi » et « ce n’est pas un score Sonar », bouton Ajouter au CRM (`TO_CONTACT`)
 - [ ] Si LBB down : **cette page** en erreur ; Explorer / events / CRM continuent
 - [ ] Attribution Etalab (footer **et** page Pistes) :
   - [ ] France Travail / La Bonne Boîte + **lien**

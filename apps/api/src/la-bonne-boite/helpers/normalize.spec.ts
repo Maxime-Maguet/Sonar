@@ -29,6 +29,8 @@ describe('normalizeLead', () => {
       communeInseeCode: '57463',
       rome: 'D1102',
       naf: '4781Z',
+      hiringPotential: 2.4201609999999993,
+      isHighPotential: false,
     });
     expect(result).not.toHaveProperty('hiring_potential');
     expect(result).not.toHaveProperty('email');
@@ -47,6 +49,8 @@ describe('normalizeLead', () => {
       communeInseeCode: '31555',
       rome: 'M1805',
       naf: '6209Z',
+      hiringPotential: 23.795312627999998,
+      isHighPotential: null,
     });
     expect(result).not.toHaveProperty('email');
     expect(result).not.toHaveProperty('hiring_potential');
@@ -75,6 +79,17 @@ describe('normalizeLead', () => {
     expect(normalizeLead(null)).toBeNull();
     expect(normalizeLead([])).toBeNull();
     expect(normalizeLead('88123980000017')).toBeNull();
+  });
+
+  it('keeps the lead when the hiring score is not a finite number', () => {
+    const result = normalizeLead({
+      ...toulouseItem,
+      hiring_potential: Number.NaN,
+      is_high_potential: 'false',
+    });
+
+    expect(result?.hiringPotential).toBeNull();
+    expect(result?.isHighPotential).toBeNull();
   });
 
   it('still normalizes a city outside Toulouse couronne', () => {

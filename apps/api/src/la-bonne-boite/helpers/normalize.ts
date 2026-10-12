@@ -1,4 +1,10 @@
-import { asObject, asText, slugify } from '../../common/json.js';
+import {
+  asObject,
+  asText,
+  asNumber,
+  asBoolean,
+  slugify,
+} from '../../common/json.js';
 
 const SIRET_PATTERN = /^[0-9]{14}$/;
 
@@ -13,6 +19,8 @@ export type LeadFiche = {
   communeInseeCode: string | null;
   rome: string | null;
   naf: string | null;
+  hiringPotential: number | null;
+  isHighPotential: boolean | null;
 };
 
 /** JSON LBB (item) → fiche, ou null si l’item est inutilisable. */
@@ -43,5 +51,7 @@ export function normalizeLead(raw: unknown): LeadFiche | null {
     communeInseeCode: asText(item.citycode),
     rome: asText(item.rome),
     naf: asText(item.naf),
+    hiringPotential: asNumber(item.hiring_potential),
+    isHighPotential: asBoolean(item.is_high_potential),
   };
 }

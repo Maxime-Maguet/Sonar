@@ -101,7 +101,8 @@ Champs `SearchResponseItem` **à parser** (les autres existent, on ne s’en ser
 | `naf` | Optionnel, pas un signal de recrutement. |
 | `office_name` | Enseigne éventuelle ; ne pas fusionner au nom SIRENE. |
 | `postcode` | Optionnel. |
-| `hiring_potential` | **Ne pas exposer** dans le DTO HTTP (score LBB, pas un score maison Sonar). |
+| `hiring_potential` | Potentiel d’embauche France Travail, **0–100** ou `null` (OpenAPI v2.27.3). Fait sourcé : on le garde en `metadata` du signal et on l’expose dans `GET /leads`. Sonar ne le recalcule pas. |
+| `is_high_potential` | Booléen ou `null`. Titre schéma : « A fort potentiel d’embauche ». La description Swagger « Longitude de l'entreprise » est une erreur de copie. `false` n’exclut pas la piste : l’exemple officiel est dans `items` avec `false`. |
 
 Exemple item officiel (Metz, schema Stoplight) : [`search.fixture.ts`](../apps/api/src/la-bonne-boite/helpers/search.fixture.ts). Ce n’est **pas** un dump Toulouse ; la forme des champs est le contrat.
 

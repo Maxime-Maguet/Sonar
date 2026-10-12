@@ -11,6 +11,14 @@ function asText(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function asNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function asBoolean(value: unknown): boolean | null {
+  return typeof value === 'boolean' ? value : null;
+}
+
 function slugify(value: string): string {
   const slug = value
     .normalize('NFD')
@@ -21,4 +29,4 @@ function slugify(value: string): string {
   return slug || 'etablissement'; // Retourne le slug ou 'etablissement' si le slug est vide.
 }
 
-export { asObject, asText, slugify };
+export { asObject, asText, asNumber, asBoolean, slugify };

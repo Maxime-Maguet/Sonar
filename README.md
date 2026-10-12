@@ -7,7 +7,7 @@ Outil **personnel / portfolio**, pas un job board et pas un service officiel. Tu
 Deux couches données en V1 :
 
 1. **SIRENE (INSEE)** remplit l’annuaire (Toulouse + 1re couronne, quelques NAF). Le code APE sert à **découvrir** des boîtes, pas à dire « elles recrutent ».
-2. **La Bonne Boîte (France Travail)** **marque une piste** (potentiel d’embauche ~6 mois), reliée par SIREN/SIRET.
+2. **La Bonne Boîte (France Travail)** marque qui peut embaucher (~6 mois), avec son potentiel **0–100** sourcé, relié par SIREN/SIRET.
 
 ---
 
@@ -20,7 +20,7 @@ Deux couches données en V1 :
 - CRM Kanban perso (statuts + historique), isolé par utilisateur
 - Attribution **Etalab** (paternité + date de MAJ) ; statut de diffusion SIRENE `"P"` respecté
 
-**Hors V1 :** upload de documents, Hunter / mails auto (Job2Mail), SIRENE France entière, score d’embauche maison, multi-villes, API publique Sonar.
+**Hors V1 :** upload de documents, Hunter / mails auto (Job2Mail), SIRENE France entière, score d’embauche calculé par Sonar, multi-villes, API publique Sonar. Le potentiel France Travail affiché avec sa source est en V1.
 
 ---
 
