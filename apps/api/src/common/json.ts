@@ -21,4 +21,4 @@ function slugify(value: string): string {
   return slug || 'etablissement'; // Retourne le slug ou 'etablissement' si le slug est vide.
 }
 
-export { asObject, asText, slugify }; // Exporte les fonctions asObject, asText et slugify.
+export { asObject, asText, slugify };
