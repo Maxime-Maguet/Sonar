@@ -42,7 +42,7 @@ Hors V1 (produit **et** socle) : upload, Hunter / mails auto, SIRENE France enti
 - [x] Compte francetravail.io + app + API LBB v2 habilitée
 - [x] `FT_CLIENT_ID` / `FT_CLIENT_SECRET` dans `.env` local
 - [x] Test Postman token + `GET /nombreEntreprise` (Toulouse `31555`, ROME `M1805`)
-- [ ] Lire le Swagger (liste, pagination, SIRET) avant le provider Nest
+- [x] Lire le Swagger (liste, pagination, SIRET) avant le provider Nest — contrat dans `docs/LBB_API.md` + fixture `apps/api/src/la-bonne-boite/helpers/search.fixture.ts`
 
 **Sirene INSEE**
 
