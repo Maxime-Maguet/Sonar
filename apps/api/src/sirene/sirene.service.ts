@@ -1,12 +1,16 @@
-import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import {
-  asObject,
-  asText,
   normalizeEtablissement,
   type CompanyFiche,
 } from './helpers/normalize.js';
+import { asObject, asText } from '../common/json.js';
 import {
   buildDiscoverySearchQuery,
   isAllowedCommune,

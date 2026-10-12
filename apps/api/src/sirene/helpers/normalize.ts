@@ -1,19 +1,7 @@
 import { BadGatewayException } from '@nestjs/common';
 
-type Json = Record<string, unknown>;
-
-function asObject(value: unknown): Json | undefined {
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    return value as Json;
-  }
-  return undefined;
-}
-
-function asText(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
-export { asObject, asText };
+import { asObject, asText, slugify } from '../../common/json.js';
+import type { Json as JsonType } from '../../common/json.js';
 
 /** Fiche affichée / enregistrée, pas le JSON INSEE. */
 export type CompanyFiche = {
@@ -32,26 +20,18 @@ export type CompanyFiche = {
   isHeadquarter: boolean;
 };
 
-function slugify(value: string): string {
-  const slug = value
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-  return slug || 'etablissement';
-}
-
-function currentPeriode(etab: Json): Json | undefined {
+function currentPeriode(etab: JsonType): JsonType | undefined {
   const periodes = etab.periodesEtablissement;
   if (!Array.isArray(periodes) || periodes.length === 0) {
     return undefined;
   }
-  const ouverte = periodes.find((periode) => asObject(periode)?.dateFin == null);
+  const ouverte = periodes.find(
+    (periode) => asObject(periode)?.dateFin == null,
+  );
   return asObject(ouverte) ?? asObject(periodes[0]);
 }
 
-function buildStreet(adresse: Json | undefined): string | null {
+function buildStreet(adresse: JsonType | undefined): string | null {
   if (!adresse) {
     return null;
   }
@@ -66,7 +46,10 @@ function buildStreet(adresse: Json | undefined): string | null {
   return line || null;
 }
 
-function legalName(unite: Json | undefined, periode: Json | undefined): string | null {
+function legalName(
+  unite: JsonType | undefined,
+  periode: JsonType | undefined,
+): string | null {
   const fromPerson = [
     asText(unite?.prenom1UniteLegale),
     asText(unite?.nomUniteLegale),

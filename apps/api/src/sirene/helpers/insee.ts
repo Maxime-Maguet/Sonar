@@ -8,7 +8,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { asObject } from './normalize.js';
+import { asObject } from '../../common/json.js';
 
 export const SIRENE_BASE_URL = 'https://api.insee.fr/api-sirene/3.11';
 export const SIRENE_SEARCH_MAX_PAGES = 5;
@@ -88,7 +88,6 @@ export class InseeClient {
       }
       debut += nombre;
     }
-
     return {
       etablissements: collected,
       total,
