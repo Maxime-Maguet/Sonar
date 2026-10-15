@@ -4,6 +4,7 @@ import type { LeadFiche } from './helpers/normalize.js';
 
 export const COMPANY_SOURCE_LBB = 'LA_BONNE_BOITE';
 
+// Fonction pour enregistrer une piste spontanée dans la base de données
 export async function saveLead(prisma: PrismaService, lead: LeadFiche) {
   if (!lead.rome) {
     throw new BadRequestException('Rome is required');

@@ -17,23 +17,26 @@ import {
   isInDiscoveryNafScope,
 } from './helpers/discovery.js';
 import { InseeClient } from './helpers/insee.js';
-
+// Constante pour la source de la company
 export const COMPANY_SOURCE_SIRENE = 'SIRENE_INSEE';
 
+// Type pour le résultat de la synchronisation
 export type SireneSyncResult = {
-  scanned: number;
-  upserted: number;
-  skipped: number;
-  skippedOutOfScope: number;
-  truncated: boolean;
+  scanned: number; // Nombre d'établissements scannés
+  upserted: number; // Nombre d'établissements upsertés
+  skipped: number; // Nombre d'établissements ignorés
+  skippedOutOfScope: number; // Nombre d'établissements ignorés hors scope
+  truncated: boolean; // Indique si la recherche a été tronquée
 };
 
+// Fonction pour enregistrer une company dans la base de données
 export async function saveCompany(prisma: PrismaService, fiche: CompanyFiche) {
   if (!fiche.siren) {
     throw new BadRequestException('Siren is required');
   }
-
-  const lastSyncedAt = new Date();
+  //
+  const lastSyncedAt = new Date(); // On met à jour la date de dernière synchronisation
+  // On crée les champs de la company
   const fields = {
     ...(fiche.isHeadquarter ? { siretHeadquarter: fiche.siret } : {}),
     name: fiche.name,
@@ -50,6 +53,7 @@ export async function saveCompany(prisma: PrismaService, fiche: CompanyFiche) {
     lastSyncedAt,
   };
 
+  // On crée la company dans la base de données
   return prisma.company.upsert({
     where: { siren: fiche.siren },
     create: { siren: fiche.siren, ...fields },

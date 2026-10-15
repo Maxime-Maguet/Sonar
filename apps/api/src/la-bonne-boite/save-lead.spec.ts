@@ -67,6 +67,7 @@ describe('saveLead', () => {
       }),
       update: expect.objectContaining({
         companyId: 'company-1',
+        title: `Piste spontanée — M1805`,
         metadata: {
           rome: 'M1805',
           hiringPotential: 31.94,

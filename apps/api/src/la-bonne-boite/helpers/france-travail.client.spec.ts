@@ -119,9 +119,9 @@ describe('FranceTravailClient', () => {
     await client.search(searchParams);
 
     const tokenCalls = fetchSpy.mock.calls.filter(
-      (call) => call[0] === FT_TOKEN_URL,
+      (call: unknown[]) => call[0] === FT_TOKEN_URL,
     );
-    const searchCalls = fetchSpy.mock.calls.filter((call) =>
+    const searchCalls = fetchSpy.mock.calls.filter((call: unknown[]) =>
       String(call[0]).startsWith(FT_BASE_URL),
     );
     expect(tokenCalls).toHaveLength(1);
@@ -130,16 +130,20 @@ describe('FranceTravailClient', () => {
 
   it('requests a new token when the cache is past expires_in minus 60s', async () => {
     fetchSpy
-      .mockResolvedValueOnce(jsonResponse({ access_token: 'old', expires_in: 60 }))
+      .mockResolvedValueOnce(
+        jsonResponse({ access_token: 'old', expires_in: 60 }),
+      )
       .mockResolvedValueOnce(jsonResponse(searchBody))
-      .mockResolvedValueOnce(jsonResponse({ access_token: 'new', expires_in: 1500 }))
+      .mockResolvedValueOnce(
+        jsonResponse({ access_token: 'new', expires_in: 1500 }),
+      )
       .mockResolvedValueOnce(jsonResponse(searchBody));
 
     await client.search(searchParams);
     await client.search(searchParams);
 
     const tokenCalls = fetchSpy.mock.calls.filter(
-      (call) => call[0] === FT_TOKEN_URL,
+      (call: unknown[]) => call[0] === FT_TOKEN_URL,
     );
     expect(tokenCalls).toHaveLength(2);
     expect(fetchSpy.mock.calls[2]?.[0]).toBe(FT_TOKEN_URL);
@@ -156,11 +160,13 @@ describe('FranceTravailClient', () => {
     fetchSpy
       .mockResolvedValueOnce(jsonResponse(tokenBody))
       .mockResolvedValueOnce(errorResponse(401))
-      .mockResolvedValueOnce(jsonResponse({ access_token: 'fresh', expires_in: 1500 }))
+      .mockResolvedValueOnce(
+        jsonResponse({ access_token: 'fresh', expires_in: 1500 }),
+      )
       .mockResolvedValueOnce(jsonResponse(searchBody));
 
     await expect(client.search(searchParams)).resolves.toEqual(searchBody);
-    expect(fetchSpy.mock.calls.map((call) => call[0])).toEqual([
+    expect(fetchSpy.mock.calls.map((call: unknown[]) => call[0])).toEqual([
       FT_TOKEN_URL,
       expect.stringContaining(FT_BASE_URL),
       FT_TOKEN_URL,
@@ -183,7 +189,7 @@ describe('FranceTravailClient', () => {
 
     await expect(client.search(searchParams)).resolves.toEqual(searchBody);
     expect(
-      fetchSpy.mock.calls.filter((call) =>
+      fetchSpy.mock.calls.filter((call: unknown[]) =>
         String(call[0]).startsWith(FT_BASE_URL),
       ),
     ).toHaveLength(2);
@@ -199,7 +205,7 @@ describe('FranceTravailClient', () => {
     await expect(pending).rejects.toBeInstanceOf(NotFoundException);
     await expect(pending).rejects.toThrow('France Travail a répondu 404');
     expect(
-      fetchSpy.mock.calls.filter((call) =>
+      fetchSpy.mock.calls.filter((call: unknown[]) =>
         String(call[0]).startsWith(FT_BASE_URL),
       ),
     ).toHaveLength(1);
@@ -219,18 +225,20 @@ describe('FranceTravailClient', () => {
   });
 
   it('exhausts search timeouts then throws GatewayTimeoutException', async () => {
-    fetchSpy.mockResolvedValueOnce(jsonResponse(tokenBody)).mockRejectedValue(
-      new DOMException(
-        'The operation was aborted due to timeout',
-        'TimeoutError',
-      ),
-    );
+    fetchSpy
+      .mockResolvedValueOnce(jsonResponse(tokenBody))
+      .mockRejectedValue(
+        new DOMException(
+          'The operation was aborted due to timeout',
+          'TimeoutError',
+        ),
+      );
 
     await expect(client.search(searchParams)).rejects.toThrow(
       GatewayTimeoutException,
     );
     expect(
-      fetchSpy.mock.calls.filter((call) =>
+      fetchSpy.mock.calls.filter((call: unknown[]) =>
         String(call[0]).startsWith(FT_BASE_URL),
       ),
     ).toHaveLength(FT_SEARCH_MAX_ATTEMPTS);
@@ -245,7 +253,7 @@ describe('FranceTravailClient', () => {
       'France Travail est injoignable',
     );
     expect(
-      fetchSpy.mock.calls.filter((call) =>
+      fetchSpy.mock.calls.filter((call: unknown[]) =>
         String(call[0]).startsWith(FT_BASE_URL),
       ),
     ).toHaveLength(1);
@@ -259,7 +267,7 @@ describe('FranceTravailClient', () => {
 
     await expect(client.search(searchParams)).resolves.toEqual(searchBody);
     expect(
-      fetchSpy.mock.calls.filter((call) => call[0] === FT_TOKEN_URL),
+      fetchSpy.mock.calls.filter((call: unknown[]) => call[0] === FT_TOKEN_URL),
     ).toHaveLength(2);
     expect(delay).toHaveBeenCalled();
     expect(ftBackoffMs(0)).toBe(500);
