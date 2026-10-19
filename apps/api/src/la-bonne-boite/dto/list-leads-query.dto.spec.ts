@@ -7,8 +7,9 @@ import { ListLeadsQueryDto } from './list-leads-query.dto.js';
 const PIPE = { whitelist: true, forbidNonWhitelisted: true } as const;
 
 // validateQuery is a function that validates a query
+// plain: object is the query string
 function validateQuery(plain: object) {
-  return validateSync(plainToInstance(ListLeadsQueryDto, plain), PIPE);
+  return validateSync(plainToInstance(ListLeadsQueryDto, plain), PIPE); // valide une instance de classe
 }
 describe('ListLeadsQueryDto', () => {
   it('rejects invalid rome', () => {
@@ -25,5 +26,14 @@ describe('ListLeadsQueryDto', () => {
   });
   it('accepts a valid rome', () => {
     expect(validateQuery({ rome: 'M1805' })).toHaveLength(0);
+  });
+  it('transforms page from string to number', () => {
+    const dto = plainToInstance(ListLeadsQueryDto, {
+      rome: 'M1805',
+      page: '2',
+      pageSize: 10,
+    });
+    expect(dto.page).toBe(2);
+    expect(validateSync(dto, PIPE)).toHaveLength(0);
   });
 });

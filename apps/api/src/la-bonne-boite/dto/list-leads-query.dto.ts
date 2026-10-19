@@ -1,4 +1,4 @@
-import { Transform } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsNotEmpty,
@@ -15,13 +15,13 @@ export class ListLeadsQueryDto {
   @Matches(/^[a-zA-Z]\d{4}$/)
   rome: string;
 
-  @Transform(() => Number)
+  @Type(() => Number) // transforme la chaîne de caractères en nombre
   @IsOptional()
   @IsInt()
   @Min(1)
   page: number = 1;
 
-  @Transform(() => Number)
+  @Type(() => Number) // transforme la chaîne de caractères en nombre
   @IsOptional()
   @IsInt()
   @Min(1)
