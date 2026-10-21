@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { CsrfGuard } from './csrf.guard.js';
+import { webOriginsProvider } from '../../config/web-origins.module.js';
 
 describe('CsrfGuard', () => {
   let guard: CsrfGuard;
@@ -17,9 +18,13 @@ describe('CsrfGuard', () => {
     const module = await Test.createTestingModule({
       providers: [
         CsrfGuard,
+        webOriginsProvider,
         {
           provide: ConfigService,
-          useValue: { getOrThrow: () => 'http://localhost:3000' },
+          useValue: {
+            getOrThrow: () => 'http://localhost:3000',
+            get: () => undefined,
+          },
         },
       ],
     }).compile();
@@ -52,9 +57,10 @@ describe('CsrfGuard', () => {
       const module = await Test.createTestingModule({
         providers: [
           CsrfGuard,
+          webOriginsProvider,
           {
             provide: ConfigService,
-            useValue: { getOrThrow: () => list },
+            useValue: { getOrThrow: () => list, get: () => undefined },
           },
         ],
       }).compile();
@@ -75,7 +81,11 @@ describe('CsrfGuard', () => {
     it('parse WEB_ORIGIN une seule fois (constructeur)', async () => {
       const getOrThrow = vi.fn(() => list);
       const module = await Test.createTestingModule({
-        providers: [CsrfGuard, { provide: ConfigService, useValue: { getOrThrow } }],
+        providers: [
+          CsrfGuard,
+          webOriginsProvider,
+          { provide: ConfigService, useValue: { getOrThrow, get: () => undefined } },
+        ],
       }).compile();
       const g = module.get(CsrfGuard);
       g.canActivate(buildContext('POST', 'http://localhost:3000'));
@@ -92,6 +102,24 @@ describe('CsrfGuard', () => {
         ForbiddenException,
       );
     });
+  });
+
+  it('refuse de se construire en production avec une origine locale (garde partagée)', async () => {
+    await expect(
+      Test.createTestingModule({
+        providers: [
+          CsrfGuard,
+          webOriginsProvider,
+          {
+            provide: ConfigService,
+            useValue: {
+              getOrThrow: () => 'http://localhost:3000',
+              get: () => 'production',
+            },
+          },
+        ],
+      }).compile(),
+    ).rejects.toThrow(/WEB_ORIGIN/);
   });
 
   it('laisse passer HEAD et OPTIONS sans Origin', () => {

@@ -7,9 +7,11 @@ import { APP_GUARD } from '@nestjs/core';
 import { AdminGuard } from './guards/admin.guard.js';
 import { AuthGuard } from './guards/auth.guard.js';
 import { CsrfGuard } from './guards/csrf.guard.js';
+import { WebOriginsModule } from '../config/web-origins.module.js';
 import { AuthController } from './auth.controller.js';
 @Module({
   imports: [
+    WebOriginsModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
@@ -26,7 +28,7 @@ import { AuthController } from './auth.controller.js';
     CsrfGuard,
     {
       provide: APP_GUARD,
-      useClass: CsrfGuard,
+      useExisting: CsrfGuard,
     },
   ],
   controllers: [AuthController],

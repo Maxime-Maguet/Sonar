@@ -1,22 +1,20 @@
 import {
+  Inject,
   Injectable,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { parseWebOrigins } from '../../config/web-origins.js';
+import type { WebOrigins } from '../../config/web-origins.js';
+import { WEB_ORIGINS } from '../../config/web-origins.module.js';
 
 @Injectable()
 export class CsrfGuard implements CanActivate {
-  private readonly allowedMethods = ['GET', 'OPTIONS', 'HEAD'];
-  private readonly allowedOrigins: string[];
+  private readonly allowedMethods: readonly string[] = ['GET', 'OPTIONS', 'HEAD'];
 
-  constructor(configService: ConfigService) {
-    this.allowedOrigins = parseWebOrigins(
-      configService.getOrThrow<string>('WEB_ORIGIN'),
-    );
-  }
+  constructor(
+    @Inject(WEB_ORIGINS) private readonly allowedOrigins: WebOrigins,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();

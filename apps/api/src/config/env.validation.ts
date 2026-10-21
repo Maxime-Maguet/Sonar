@@ -18,7 +18,7 @@ import {
   ValidatorConstraintInterface,
   validateSync,
 } from 'class-validator';
-import { hasPrivateOrLocalOrigin, parseWebOrigins } from './web-origins.js';
+import { resolveWebOrigins } from './web-origins.js';
 
 function trimString({ value }: { value: unknown }): unknown {
   return typeof value === 'string' ? value.trim() : value;
@@ -31,12 +31,8 @@ class WebOriginsConstraint implements ValidatorConstraintInterface {
   validate(value: unknown, args: ValidationArguments): boolean {
     if (typeof value !== 'string') return false;
     try {
-      const origins = parseWebOrigins(value);
       const nodeEnv = (args.object as { NODE_ENV?: unknown }).NODE_ENV;
-      if (typeof nodeEnv === 'string' &&
-        nodeEnv.trim().toLowerCase() === 'production' && hasPrivateOrLocalOrigin(origins)) {
-        return false;
-      }
+      resolveWebOrigins(value, typeof nodeEnv === 'string' ? nodeEnv : undefined);
       return true;
     } catch {
       return false;

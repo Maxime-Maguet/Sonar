@@ -1,6 +1,8 @@
 // Parseur unique de WEB_ORIGIN, partagé par la validation d'env, CORS et CSRF.
 // Les messages d'erreur ne reprennent jamais la valeur saisie.
 
+export type WebOrigins = readonly string[];
+
 export function parseWebOrigins(raw: string): string[] {
   if (typeof raw !== 'string' || raw.trim() === '') {
     throw new Error('WEB_ORIGIN : liste vide');
@@ -79,6 +81,29 @@ export function isPrivateOrLocalHost(hostname: string): boolean {
   return false;
 }
 
-export function hasPrivateOrLocalOrigin(origins: string[]): boolean {
+export function hasPrivateOrLocalOrigin(origins: WebOrigins): boolean {
   return origins.some((origin) => isPrivateOrLocalHost(new URL(origin).hostname));
+}
+
+export function isProduction(nodeEnv?: string): boolean {
+  return typeof nodeEnv === 'string' && nodeEnv.trim().toLowerCase() === 'production';
+}
+
+// Refuse localhost / IP privée en production. Message sans la valeur saisie.
+export function assertWebOriginsAllowed(
+  origins: WebOrigins,
+  nodeEnv?: string,
+): void {
+  if (isProduction(nodeEnv) && hasPrivateOrLocalOrigin(origins)) {
+    throw new Error(
+      'WEB_ORIGIN : origine locale ou privée interdite en production',
+    );
+  }
+}
+
+// Point d'entrée unique : parse + règle de production.
+export function resolveWebOrigins(raw: string, nodeEnv?: string): WebOrigins {
+  const origins = parseWebOrigins(raw);
+  assertWebOriginsAllowed(origins, nodeEnv);
+  return origins;
 }

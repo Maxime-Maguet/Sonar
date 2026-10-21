@@ -1,4 +1,5 @@
-import { isPrivateOrLocalHost, parseWebOrigins } from './web-origins.js';
+import {
+  resolveWebOrigins, isPrivateOrLocalHost, parseWebOrigins } from './web-origins.js';
 
 describe('parseWebOrigins', () => {
   it('parses a single origin', () => {
@@ -72,4 +73,41 @@ describe('isPrivateOrLocalHost', () => {
       expect(isPrivateOrLocalHost(host)).toBe(false);
     },
   );
+});
+
+describe('resolveWebOrigins', () => {
+  it.each(['http://localhost:3000', 'http://192.168.1.20:3000'])(
+    'throws in production for %s',
+    (origin) => {
+      expect(() => resolveWebOrigins(origin, 'production')).toThrow(
+        /WEB_ORIGIN/,
+      );
+      expect(() => resolveWebOrigins(origin, ' PRODUCTION ')).toThrow(
+        /WEB_ORIGIN/,
+      );
+    },
+  );
+  it('does not echo the value in the error', () => {
+    let message = '';
+    try {
+      resolveWebOrigins('http://192.168.1.20:3000', 'production');
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    expect(message).toMatch(/WEB_ORIGIN/);
+    expect(message).not.toContain('192.168');
+  });
+  it('accepts local origins outside production', () => {
+    expect(resolveWebOrigins('http://localhost:3000', 'development')).toEqual([
+      'http://localhost:3000',
+    ]);
+    expect(resolveWebOrigins('http://localhost:3000')).toEqual([
+      'http://localhost:3000',
+    ]);
+  });
+  it('accepts public origins in production', () => {
+    expect(
+      resolveWebOrigins('https://a.com, https://b.com', 'production'),
+    ).toEqual(['https://a.com', 'https://b.com']);
+  });
 });
