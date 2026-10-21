@@ -86,7 +86,7 @@ Ordre de build (le détail coché est dans [`PROJECT_CONTEXT_AND_TODO.md`](PROJE
 
 | Méthode | Chemin | Auth |
 |---|---|---|
-| `POST` | `/auth/register`, `/auth/login` | CSRF (`Origin` = `WEB_ORIGIN`) |
+| `POST` | `/auth/register`, `/auth/login` | CSRF (`Origin` ∈ liste `WEB_ORIGIN`) |
 | `GET` | `/auth/me` | cookie `sonar_session` |
 | `GET` | `/leads?rome=M1805` | cookie `sonar_session` ; query `rome` obligatoire, `page` / `pageSize` optionnels |
 | `GET` | `/sirene/:siret` | public |
@@ -106,7 +106,7 @@ Copier `.env.example` → `.env` à la **racine** (jamais commit).
 | `JWT_SECRET` | Cookie de session `sonar_session` (HS256) |
 | `FT_CLIENT_ID` / `FT_CLIENT_SECRET` | OAuth France Travail / LBB (détails : [`docs/LBB_API.md`](docs/LBB_API.md)) |
 | `INSEE_API_KEY` | Header Sirene `X-INSEE-Api-Key-Integration` |
-| `WEB_ORIGIN` | CORS du front (`http://localhost:3000`) |
+| `WEB_ORIGIN` | Origines web autorisées (CORS + CSRF), séparées par des virgules (`http://localhost:3000,http://192.168.1.20:3000`). En production : pas de localhost ni d'IP privée |
 | `API_PORT` | Nest (`3001`) |
 
 ---

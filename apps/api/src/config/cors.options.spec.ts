@@ -8,6 +8,18 @@ describe('buildCorsOptions', () => {
     expect(options.credentials).toBe(true);
     expect(options.origin).not.toBe('*');
   });
+  it('returns an array of origins when several are configured', () => {
+    const options = buildCorsOptions(
+      'http://localhost:3000, http://192.168.1.20:3000',
+    );
+    expect(options.origin).toEqual([
+      'http://localhost:3000',
+      'http://192.168.1.20:3000',
+    ]);
+  });
+  it('rejects an invalid list', () => {
+    expect(() => buildCorsOptions('')).toThrow(/WEB_ORIGIN/);
+  });
   it('includes all HTTP methods', () => {
     const origin = 'https://app.example.com';
     const options = buildCorsOptions(origin);

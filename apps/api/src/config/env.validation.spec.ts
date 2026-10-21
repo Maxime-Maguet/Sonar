@@ -83,6 +83,71 @@ describe('validate', () => {
     );
   });
 
+  it('accepts several origins (local + LAN phone)', () => {
+    const raw = 'http://localhost:3000, http://192.168.1.20:3000';
+    expect(validate(validEnv({ WEB_ORIGIN: raw })).WEB_ORIGIN).toBe(raw);
+  });
+
+  it.each(['', '   ', 'http://localhost:3000,', 'http://a.com/path'])(
+    'rejects WEB_ORIGIN %j',
+    (value) => {
+      expect(() => validate(validEnv({ WEB_ORIGIN: value }))).toThrow(
+        /WEB_ORIGIN/,
+      );
+    },
+  );
+
+  it('rejects a missing WEB_ORIGIN', () => {
+    const env = validEnv();
+    delete env.WEB_ORIGIN;
+    expect(() => validate(env)).toThrow(/WEB_ORIGIN/);
+  });
+
+  it.each([
+    'http://localhost:3000',
+    'https://app.example.com,http://192.168.1.20:3000',
+    'https://10.0.0.5',
+    'https://[::1]',
+  ])('rejects %s in production', (value) => {
+    expect(() =>
+      validate(validEnv({ NODE_ENV: 'production', WEB_ORIGIN: value })),
+    ).toThrow(/WEB_ORIGIN/);
+  });
+
+  it.each([' production ', 'production'])(
+    'detects production with whitespace (%j)',
+    (nodeEnv) => {
+      expect(() =>
+        validate(validEnv({ NODE_ENV: nodeEnv, WEB_ORIGIN: 'http://localhost.' })),
+      ).toThrow(/WEB_ORIGIN/);
+    },
+  );
+
+  it('rejects an unknown or wrongly-cased NODE_ENV', () => {
+    expect(() => validate(validEnv({ NODE_ENV: 'PRODUCTION' }))).toThrow(
+      /NODE_ENV/,
+    );
+    expect(() => validate(validEnv({ NODE_ENV: 'staging' }))).toThrow(
+      /NODE_ENV/,
+    );
+  });
+
+  it('keeps NODE_ENV optional', () => {
+    expect(() => validate(validEnv({ NODE_ENV: '' }))).not.toThrow();
+    expect(() => validate(validEnv({ NODE_ENV: 'development' }))).not.toThrow();
+  });
+
+  it('accepts public https origins in production', () => {
+    expect(
+      validate(
+        validEnv({
+          NODE_ENV: 'production',
+          WEB_ORIGIN: 'https://app.example.com,https://www.example.com',
+        }),
+      ).WEB_ORIGIN,
+    ).toBe('https://app.example.com,https://www.example.com');
+  });
+
   it('rejects a DATABASE_URL that is not Postgres and hides the value', () => {
     // Le message nomme DATABASE_URL et ne contient pas secret-db.
     expect(() =>

@@ -4,18 +4,48 @@
 import 'reflect-metadata';
 import { plainToInstance, Transform } from 'class-transformer';
 import {
+  IsIn,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
-  IsUrl,
   Matches,
   Max,
   Min,
+  Validate,
+  ValidationArguments,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
   validateSync,
 } from 'class-validator';
+import { hasPrivateOrLocalOrigin, parseWebOrigins } from './web-origins.js';
 
 function trimString({ value }: { value: unknown }): unknown {
   return typeof value === 'string' ? value.trim() : value;
+}
+
+// Liste non vide d'origines http(s) valides ; en production, ni localhost
+// ni IP privée. Retourne false sans détailler la valeur.
+@ValidatorConstraint({ name: 'webOrigins', async: false })
+class WebOriginsConstraint implements ValidatorConstraintInterface {
+  validate(value: unknown, args: ValidationArguments): boolean {
+    if (typeof value !== 'string') return false;
+    try {
+      const origins = parseWebOrigins(value);
+      const nodeEnv = (args.object as { NODE_ENV?: unknown }).NODE_ENV;
+      if (typeof nodeEnv === 'string' &&
+        nodeEnv.trim().toLowerCase() === 'production' && hasPrivateOrLocalOrigin(origins)) {
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  defaultMessage(): string {
+    return 'WEB_ORIGIN invalide';
+  }
 }
 
 class EnvironmentVariables {
@@ -31,8 +61,16 @@ class EnvironmentVariables {
   JWT_SECRET: string;
 
   @Transform(trimString)
-  @IsUrl({ require_tld: false, require_protocol: true })
+  @Validate(WebOriginsConstraint)
   WEB_ORIGIN: string;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    const v = trimString({ value });
+    return v === '' ? undefined : v;
+  })
+  @IsIn(['development', 'test', 'production'])
+  NODE_ENV?: string;
 
   @Transform(trimString)
   @IsString()

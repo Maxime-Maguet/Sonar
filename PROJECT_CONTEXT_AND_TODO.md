@@ -32,7 +32,7 @@ Hors V1 (produit **et** socle) : upload, Hunter / mails auto, SIRENE France enti
   - **Statut de diffusion partielle `"P"`** (ex-non-diffusible `"N"`) : **ne pas** rediffuser les infos perso, **ne pas** les utiliser pour de la prospection (art. R123-232-1). Ça va dans le même sens que « pas Hunter / pas mail auto ».
 - **LBB = `RecruitmentSignal`**, jamais `JobOpportunity`. CRM : `Application` → `Company` (+ signal optionnel).
 - **Session V1 :** un JWT HS256 dans le cookie `sonar_session` (HttpOnly, SameSite=Lax, Path=/, Secure en prod), durée 24 h, champ `ver` = `User.sessionVersion`. Incrémenter `sessionVersion` révoque tous les tickets. Réémission glissante si le JWT a déjà vécu plus de 12 h. Refresh token = V2. Logout efface toujours le cookie et n'incrémente `sessionVersion` que si le JWT est encore valide et `ver` correspond ; email stocké en trim+lowercase ; échec de login = une seule 401 ; `cookie-parser` remplit `request.cookies`. DTO, throttle login et CORS `WEB_ORIGIN` sont en place.
-- **CSRF V1 :** sur POST / PUT / PATCH / DELETE, `Origin` doit être strictement égal à `WEB_ORIGIN`. Pas de double-submit (cookie API illisible depuis le front). Pas de mutation sur GET.
+- **CSRF V1 :** sur POST / PUT / PATCH / DELETE, `Origin` doit être strictement présente dans la liste `WEB_ORIGIN` (origines séparées par des virgules, parseur partagé `config/web-origins.ts`). Pas de double-submit (cookie API illisible depuis le front). Pas de mutation sur GET.
 
 ---
 

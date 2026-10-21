@@ -47,6 +47,53 @@ describe('CsrfGuard', () => {
     expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
   });
 
+  describe('plusieurs origines', () => {
+    async function guardFor(list: string) {
+      const module = await Test.createTestingModule({
+        providers: [
+          CsrfGuard,
+          {
+            provide: ConfigService,
+            useValue: { getOrThrow: () => list },
+          },
+        ],
+      }).compile();
+      return module.get(CsrfGuard);
+    }
+    const list = 'http://localhost:3000, http://192.168.1.20:3000';
+
+    it('laisse passer chaque origine de la liste', async () => {
+      const g = await guardFor(list);
+      expect(g.canActivate(buildContext('POST', 'http://localhost:3000'))).toBe(
+        true,
+      );
+      expect(
+        g.canActivate(buildContext('POST', 'http://192.168.1.20:3000')),
+      ).toBe(true);
+    });
+
+    it('parse WEB_ORIGIN une seule fois (constructeur)', async () => {
+      const getOrThrow = vi.fn(() => list);
+      const module = await Test.createTestingModule({
+        providers: [CsrfGuard, { provide: ConfigService, useValue: { getOrThrow } }],
+      }).compile();
+      const g = module.get(CsrfGuard);
+      g.canActivate(buildContext('POST', 'http://localhost:3000'));
+      g.canActivate(buildContext('POST', 'http://localhost:3000'));
+      expect(getOrThrow).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejette une origine inconnue et une Origin absente', async () => {
+      const g = await guardFor(list);
+      expect(() =>
+        g.canActivate(buildContext('POST', 'http://192.168.1.21:3000')),
+      ).toThrow(ForbiddenException);
+      expect(() => g.canActivate(buildContext('POST'))).toThrow(
+        ForbiddenException,
+      );
+    });
+  });
+
   it('laisse passer HEAD et OPTIONS sans Origin', () => {
     expect(guard.canActivate(buildContext('HEAD'))).toBe(true);
     expect(guard.canActivate(buildContext('OPTIONS'))).toBe(true);

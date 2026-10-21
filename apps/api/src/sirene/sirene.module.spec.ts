@@ -14,7 +14,10 @@ describe('SireneModule', () => {
           isGlobal: true,
           ignoreEnvFile: true,
           load: [
-            () => ({ JWT_SECRET: 'test-secret-for-module-compile' }),
+            () => ({
+              JWT_SECRET: 'test-secret-for-module-compile',
+              WEB_ORIGIN: 'http://localhost:3000',
+            }),
           ],
         }),
         ThrottlerModule.forRoot([
