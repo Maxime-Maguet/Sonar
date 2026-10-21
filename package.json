@@ -15,6 +15,7 @@
     "lint:web": "npm run lint -w web",
     "lint:api": "npm run lint -w api",
     "test": "npm run test -w api --",
+    "test:web": "npm run test -w web --",
     "test:api": "npm run test -w api --",
     "test:watch": "npm run test:watch -w api --",
     "docker:up": "docker compose up -d",
