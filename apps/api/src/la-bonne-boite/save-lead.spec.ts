@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
 import type { LeadFiche } from './helpers/normalize.js';
 import { saveLead, COMPANY_SOURCE_LBB } from './la-bonne-boite.service.js';
 

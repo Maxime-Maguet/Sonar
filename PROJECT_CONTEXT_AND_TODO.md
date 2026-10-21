@@ -106,12 +106,12 @@ Dès qu’un endpoint est créé (ci-dessous) : DTO entrée, DTO **sortie** (jam
 
 **La Bonne Boîte**
 
-- [ ] Module `src/la-bonne-boite/` : fetch → normalize → upsert (le domaine ne parle pas à France Travail)
-- [ ] OAuth2 client_credentials **Nest seulement** (`docs/LBB_API.md`) ; cache token ; timeout ; retry ; ≤ **2 req/s** ; gérer **429**
-- [ ] Overlay : une piste = une `Company` déjà là (SIREN/SIRET). SIRET LBB absent de l’annuaire → fiche minimale sourcée LBB, **pas** de fusion au nom
-- [ ] Signal `POTENTIAL_RECRUITMENT` + `source = LA_BONNE_BOITE` + `externalId` + `detectedAt` — **pas** `JobOpportunity`
-- [ ] `GET /leads` (ou `/pistes`) : métier ROME, zone Toulouse/couronne, pagination, DTO
-- [ ] Tests mock : normalisation, idempotence, **aucun** appel FT réel
+- [x] Module `src/la-bonne-boite/` : fetch → normalize → upsert (le domaine ne parle pas à France Travail)
+- [x] OAuth2 client_credentials **Nest seulement** (`docs/LBB_API.md`) ; cache token ; timeout ; retry ; ≤ **2 req/s** ; gérer **429**
+- [x] Overlay : une piste = une `Company` déjà là (SIREN/SIRET). SIRET LBB absent de l’annuaire → fiche minimale sourcée LBB, **pas** de fusion au nom
+- [x] Signal `POTENTIAL_RECRUITMENT` + `source = LA_BONNE_BOITE` + `externalId` + `detectedAt` — **pas** `JobOpportunity`
+- [x] `GET /leads` : métier ROME, zone Toulouse durcie (`citycode` 31555, `distance` 10), pagination, DTO, session (`AuthGuard`, pas admin). Write-on-GET (search + `saveLead`). Page `/pistes` = front, pas encore
+- [x] Tests mock : normalisation, `saveLead`, `list` (idempotence, SIRET skip, 502), **aucun** appel FT réel
 
 ### E — Health
 
@@ -170,4 +170,4 @@ CRM
 
 ---
 
-**Prochain code : LBB / bloc E** — provider La Bonne Boîte, puis health. Ne pas rouvrir Sirene sauf bug.
+**Prochain code : front `/pistes`** (client HTTP + `/login` `/register`, puis liste). Health BDD (bloc E) n’est pas dans ce chantier. Ne pas rouvrir Sirene ni `GET /leads` sauf bug.

@@ -73,16 +73,26 @@ Seed actuel : **technologies seulement**. Pas d’entreprises fictives ; l’ann
 
 ## Roadmap
 
-Ordre de build :
+Ordre de build (le détail coché est dans [`PROJECT_CONTEXT_AND_TODO.md`](PROJECT_CONTEXT_AND_TODO.md)) :
 
-1. Scaffold (cette init) — **en cours de clôture**
-2. SIRENE ciblé → Explorer + fiches + stats live
-3. LBB overlay (pistes) + mentions Etalab
-4. Toulouse Tech Hub + Radar
-5. Auth JWT cookie + CRM
-6. Tests / sécu
+1. Scaffold Nest + Next + Prisma + Docker — **fait**
+2. SIRENE ciblé (provider Nest, sync admin) — **fait** ; Explorer UI pas encore
+3. Auth cookie JWT (`/auth/register`, `/auth/login`, `/auth/me`) — **API faite** ; pages `/login` `/register` pas encore
+4. LBB overlay — **`GET /leads` faite** (session, Toulouse durci, potentiel France Travail affiché y compris `is_high_potential: false`) ; page **`/pistes`** + Etalab UI pas encore
+5. Toulouse Tech Hub + Radar
+6. CRM Kanban
 
-Le détail coché / restant est dans [`PROJECT_CONTEXT_AND_TODO.md`](PROJECT_CONTEXT_AND_TODO.md).
+### API déjà exposée (local)
+
+| Méthode | Chemin | Auth |
+|---|---|---|
+| `POST` | `/auth/register`, `/auth/login` | CSRF (`Origin` = `WEB_ORIGIN`) |
+| `GET` | `/auth/me` | cookie `sonar_session` |
+| `GET` | `/leads?rome=M1805` | cookie `sonar_session` ; query `rome` obligatoire, `page` / `pageSize` optionnels |
+| `GET` | `/sirene/:siret` | public |
+| `POST` | `/sirene/sync` | session **admin** |
+
+`GET /leads` appelle France Travail puis persiste (`saveLead`). Sans cookie → 401. Sans `rome` → 400. LBB down → 502. Throttle : 10 req / 60 s.
 
 ---
 
@@ -93,7 +103,7 @@ Copier `.env.example` → `.env` à la **racine** (jamais commit).
 | Variable | Rôle |
 |---|---|
 | `DATABASE_URL` | Postgres (compose → `localhost:5433`) |
-| `JWT_SECRET` | Auth (plus tard) |
+| `JWT_SECRET` | Cookie de session `sonar_session` (HS256) |
 | `FT_CLIENT_ID` / `FT_CLIENT_SECRET` | OAuth France Travail / LBB (détails : [`docs/LBB_API.md`](docs/LBB_API.md)) |
 | `INSEE_API_KEY` | Header Sirene `X-INSEE-Api-Key-Integration` |
 | `WEB_ORIGIN` | CORS du front (`http://localhost:3000`) |
