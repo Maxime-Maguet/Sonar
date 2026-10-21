@@ -1,0 +1,23 @@
+{
+  "name": "@sonar/api-contract",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  }
+}

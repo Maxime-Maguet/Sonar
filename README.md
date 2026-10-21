@@ -49,6 +49,7 @@ sonar/
   PROJECT_CONTEXT_AND_TODO.md
   apps/web/             # Next — UI
   apps/api/             # Nest — API + Prisma
+  packages/api-contract # Types JSON partagés (pistes, auth) — pas les DTO Nest
     prisma/schema.prisma
     prisma.config.ts
 ```

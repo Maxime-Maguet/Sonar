@@ -1,6 +1,6 @@
-// Dupliqué côté web (contrat apps/api). Une « Piste » = lead (voir GLOSSARY.md).
+// Contrat JSON public de l'API. Une piste n'est pas une offre (GLOSSARY.md).
 
-export interface LeadItem {
+export type LeadItem = {
   companyId: string;
   slug: string;
   name: string;
@@ -10,30 +10,30 @@ export interface LeadItem {
   rome: string;
   hiringPotential: number | null;
   isHighPotential: boolean | null;
-  source: "LA_BONNE_BOITE";
+  source: 'LA_BONNE_BOITE';
   detectedAt: string;
-}
+};
 
-export interface LeadsPage {
+export type LeadsPage = {
   hits: number;
   page: number;
   pageSize: number;
   fetchedAt: string;
   items: LeadItem[];
-}
+};
 
-export interface Credentials {
+export type Credentials = {
   email: string;
   password: string;
-}
+};
 
-export interface AuthUser {
+export type AuthUser = {
   id: string;
   email: string;
-}
+};
 
-export interface ListLeadsParams {
+export type ListLeadsParams = {
   rome: string;
   page?: number;
   pageSize?: number;
-}
+};

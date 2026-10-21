@@ -18,7 +18,8 @@ Single-context repo:
 ├── GLOSSARY.md
 ├── docs/adr/
 │   └── 0001-<decision>.md
-└── apps/ (api, web)
+├── apps/ (api, web)
+└── packages/api-contract  # JSON public types (not Nest DTOs)
 ```
 
 ## Use the glossary's vocabulary

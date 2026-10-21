@@ -1,10 +1,10 @@
-import { ApiError, NETWORK_ERROR_CODE } from "./errors";
 import type {
   AuthUser,
   Credentials,
   LeadsPage,
   ListLeadsParams,
-} from "./types";
+} from "@sonar/api-contract";
+import { ApiError, NETWORK_ERROR_CODE } from "./errors";
 
 function getBaseUrl(): string {
   // Accès littéral requis : Next n'inline NEXT_PUBLIC_* que sous cette forme.
