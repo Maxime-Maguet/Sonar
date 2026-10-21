@@ -11,6 +11,7 @@ function validEnv(
     DATABASE_URL: 'postgresql://sonar:sonar@localhost:5433/sonar',
     JWT_SECRET: 'replace-with-a-long-random-string',
     WEB_ORIGIN: 'http://localhost:3000',
+    NODE_ENV: 'development',
     INSEE_API_KEY: 'insee-key',
     FT_CLIENT_ID: 'ft-client-id',
     FT_CLIENT_SECRET: SECRET,
@@ -132,10 +133,24 @@ describe('validate', () => {
     );
   });
 
-  it('keeps NODE_ENV optional', () => {
-    expect(() => validate(validEnv({ NODE_ENV: '' }))).not.toThrow();
-    expect(() => validate(validEnv({ NODE_ENV: 'development' }))).not.toThrow();
+  it('requires NODE_ENV: missing, empty or blank is rejected by name', () => {
+    const missing = validEnv();
+    delete missing.NODE_ENV;
+    expect(() => validate(missing)).toThrow(
+      "Variables d'environnement invalides ou manquantes : NODE_ENV",
+    );
+    expect(() => validate(validEnv({ NODE_ENV: '' }))).toThrow(/NODE_ENV/);
+    expect(() => validate(validEnv({ NODE_ENV: '   ' }))).toThrow(/NODE_ENV/);
   });
+
+  it.each(['development', 'test', 'production'])(
+    'accepts NODE_ENV=%s',
+    (nodeEnv) => {
+      expect(() =>
+        validate(validEnv({ NODE_ENV: nodeEnv, WEB_ORIGIN: 'https://app.example.com' })),
+      ).not.toThrow();
+    },
+  );
 
   it('accepts public https origins in production', () => {
     expect(

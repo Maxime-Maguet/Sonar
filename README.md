@@ -106,6 +106,7 @@ Copier `.env.example` → `.env` à la **racine** (jamais commit).
 | `JWT_SECRET` | Cookie de session `sonar_session` (HS256) |
 | `FT_CLIENT_ID` / `FT_CLIENT_SECRET` | OAuth France Travail / LBB (détails : [`docs/LBB_API.md`](docs/LBB_API.md)) |
 | `INSEE_API_KEY` | Header Sirene `X-INSEE-Api-Key-Integration` |
+| `NODE_ENV` | **Obligatoire** : `development`, `test` ou `production` (sensible à la casse). Sans lui l'API refuse de démarrer ; en `production` : cookie `secure` + garde `WEB_ORIGIN` |
 | `WEB_ORIGIN` | Origines web autorisées (CORS + CSRF), séparées par des virgules (`http://localhost:3000,http://192.168.1.20:3000`). En production : pas de localhost ni d'IP privée |
 | `API_PORT` | Nest (`3001`) |
 

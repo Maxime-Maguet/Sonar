@@ -7,7 +7,6 @@ import {
   IsIn,
   IsInt,
   IsNotEmpty,
-  IsOptional,
   IsString,
   Matches,
   Max,
@@ -60,13 +59,11 @@ class EnvironmentVariables {
   @Validate(WebOriginsConstraint)
   WEB_ORIGIN: string;
 
-  @IsOptional()
-  @Transform(({ value }) => {
-    const v = trimString({ value });
-    return v === '' ? undefined : v;
-  })
+  // Obligatoire : sans lui, le garde WEB_ORIGIN (production) et le flag
+  // `secure` du cookie seraient silencieusement inactifs.
+  @Transform(trimString)
   @IsIn(['development', 'test', 'production'])
-  NODE_ENV?: string;
+  NODE_ENV: string;
 
   @Transform(trimString)
   @IsString()
