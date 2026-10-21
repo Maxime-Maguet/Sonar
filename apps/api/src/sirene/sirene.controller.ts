@@ -9,7 +9,12 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { seconds, SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import {
+  seconds,
+  SkipThrottle,
+  Throttle,
+  ThrottlerGuard,
+} from '@nestjs/throttler';
 import { AuthGuard } from '../auth/guards/auth.guard.js';
 import { AdminGuard } from '../auth/guards/admin.guard.js';
 import { SireneService } from './sirene.service.js';
@@ -46,7 +51,7 @@ export class SireneController {
   @Post(':siret/create')
   @UseGuards(ThrottlerGuard, AuthGuard, AdminGuard)
   @SkipThrottle({ login: true })
-  @Throttle({ sireneSync: { limit: 2, ttl: seconds(60) } })
+  @Throttle({ sireneSync: { limit: 2, ttl: seconds(60) } }) // throttle pour limiter le nombre de requêtes par minute
   createCompany(@Param('siret', SiretPipe) siret: string) {
     return this.sirene.createEtablissement(siret);
   }
