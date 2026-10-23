@@ -6,9 +6,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { LeadsPage } from "@sonar/api-contract";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { listLeads } from "@/lib/api/client";
 import { ApiError } from "@/lib/api/errors";
 import { metierOptions } from "@/lib/pistes/metiers";
+import {
+  classifyPistesLoadError,
+  EMPTY_PISTES_MESSAGE,
+  PISTES_LOAD_MESSAGES,
+  type PistesLoadFailure,
+} from "@/lib/pistes/load-error";
 import {
   DEFAULT_ROME,
   loginPathForPistes,
@@ -27,7 +34,7 @@ const fieldClassName =
 type LoadState =
   | { status: "loading" }
   | { status: "ready"; data: LeadsPage }
-  | { status: "error" };
+  | { status: "error"; kind: PistesLoadFailure };
 
 export function PistesFallback() {
   return (
@@ -42,6 +49,7 @@ export function PistesBrowser() {
   const searchParams = useSearchParams();
   const rome = readRome(searchParams.get("rome"));
   const page = readPage(searchParams.get("page"));
+  const [fetchedAt, setFetchedAt] = useState<string>();
 
   useEffect(() => {
     const canonical = pistesPath(rome, page);
@@ -51,7 +59,10 @@ export function PistesBrowser() {
   }, [rome, page, router, searchParams]);
 
   return (
-    <PistesFrame loginHref={loginPathForPistes(rome, page)}>
+    <PistesFrame
+      loginHref={loginPathForPistes(rome, page)}
+      fetchedAt={fetchedAt}
+    >
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">Pistes</h1>
         <p className="text-sm text-muted-foreground">
@@ -84,20 +95,36 @@ export function PistesBrowser() {
         </select>
       </div>
 
-      <PistesLoader key={`${rome}:${page}`} rome={rome} page={page} />
+      <PistesLoader
+        key={`${rome}:${page}`}
+        rome={rome}
+        page={page}
+        onFetchedAt={setFetchedAt}
+      />
     </PistesFrame>
   );
 }
 
-function PistesLoader({ rome, page }: { rome: string; page: number }) {
+function PistesLoader({
+  rome,
+  page,
+  onFetchedAt,
+}: {
+  rome: string;
+  page: number;
+  onFetchedAt: (iso: string | undefined) => void;
+}) {
   const router = useRouter();
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
   useEffect(() => {
     let cancelled = false;
+    onFetchedAt(undefined);
     listLeads({ rome, page })
       .then((data) => {
-        if (!cancelled) setState({ status: "ready", data });
+        if (cancelled) return;
+        setState({ status: "ready", data });
+        onFetchedAt(data.fetchedAt);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -105,18 +132,21 @@ function PistesLoader({ rome, page }: { rome: string; page: number }) {
           router.replace(loginPathForPistes(rome, page));
           return;
         }
-        setState({ status: "error" });
+        setState({
+          status: "error",
+          kind: classifyPistesLoadError(error),
+        });
       });
     return () => {
       cancelled = true;
     };
-  }, [rome, page, router]);
+  }, [rome, page, router, onFetchedAt]);
 
   if (state.status === "loading") return <PistesSkeleton />;
   if (state.status === "error") {
     return (
       <p role="alert" className="text-sm text-destructive">
-        Impossible de charger les pistes.
+        {PISTES_LOAD_MESSAGES[state.kind]}
       </p>
     );
   }
@@ -125,17 +155,20 @@ function PistesLoader({ rome, page }: { rome: string; page: number }) {
 
 function PistesFrame({
   loginHref,
+  fetchedAt,
   children,
 }: {
   loginHref: string;
+  fetchedAt?: string;
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-svh">
+    <div className="flex min-h-svh flex-col">
       <SiteHeader loginHref={loginHref} />
-      <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-10">
+      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
         {children}
       </main>
+      <SiteFooter fetchedAt={fetchedAt} />
     </div>
   );
 }
@@ -170,7 +203,7 @@ function PistesResults({
     <div className="space-y-4">
       {data.items.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Aucune piste pour ce métier.
+          {EMPTY_PISTES_MESSAGE}
         </p>
       ) : (
         <ul className="space-y-3">
