@@ -78,8 +78,8 @@ Ordre de build (le détail coché est dans [`PROJECT_CONTEXT_AND_TODO.md`](PROJE
 
 1. Scaffold Nest + Next + Prisma + Docker — **fait**
 2. SIRENE ciblé (provider Nest, sync admin) — **fait** ; Explorer UI pas encore
-3. Auth cookie JWT (`/auth/register`, `/auth/login`, `/auth/me`) — **API faite** ; pages `/login` `/register` pas encore
-4. LBB overlay — **`GET /leads` faite** (session, Toulouse durci, potentiel France Travail affiché y compris `is_high_potential: false`) ; page **`/pistes`** + Etalab UI pas encore
+3. Auth cookie JWT — **API + pages `/login` `/register` faites**
+4. LBB overlay — **`GET /leads` + page `/pistes` + mentions Etalab faites** (session, Toulouse durci, potentiel France Travail y compris `is_high_potential: false` ; 502 LBB ≠ liste vide ≠ API éteinte)
 5. Toulouse Tech Hub + Radar
 6. CRM Kanban
 
@@ -109,6 +109,7 @@ Copier `.env.example` → `.env` à la **racine** (jamais commit).
 | `INSEE_API_KEY` | Header Sirene `X-INSEE-Api-Key-Integration` |
 | `NODE_ENV` | **Obligatoire** : `development`, `test` ou `production` (sensible à la casse). Sans lui l'API refuse de démarrer ; en `production` : cookie `secure` + garde `WEB_ORIGIN` |
 | `WEB_ORIGIN` | Origines web autorisées (CORS + CSRF), séparées par des virgules (`http://localhost:3000,http://192.168.1.20:3000`). En production : pas de localhost ni d'IP privée |
+| `NEXT_PUBLIC_API_URL` | URL de l’API vue par le navigateur (`http://localhost:3001`). Seule variable publique du web ; jamais de `FT_*` / `INSEE_*` ici |
 | `API_PORT` | Nest (`3001`) |
 
 ---

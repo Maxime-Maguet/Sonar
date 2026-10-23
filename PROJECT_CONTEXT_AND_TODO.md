@@ -110,7 +110,7 @@ Dès qu’un endpoint est créé (ci-dessous) : DTO entrée, DTO **sortie** (jam
 - [x] OAuth2 client_credentials **Nest seulement** (`docs/LBB_API.md`) ; cache token ; timeout ; retry ; ≤ **2 req/s** ; gérer **429**
 - [x] Overlay : une piste = une `Company` déjà là (SIREN/SIRET). SIRET LBB absent de l’annuaire → fiche minimale sourcée LBB, **pas** de fusion au nom
 - [x] Signal `POTENTIAL_RECRUITMENT` + `source = LA_BONNE_BOITE` + `externalId` + `detectedAt` — **pas** `JobOpportunity`
-- [x] `GET /leads` : métier ROME, zone Toulouse durcie (`citycode` 31555, `distance` 10), pagination, DTO, session (`AuthGuard`, pas admin). Write-on-GET (search + `saveLead`). Page `/pistes` = front, pas encore
+- [x] `GET /leads` : métier ROME, zone Toulouse durcie (`citycode` 31555, `distance` 10), pagination, DTO, session (`AuthGuard`, pas admin). Write-on-GET (search + `saveLead`)
 - [x] Tests mock : normalisation, `saveLead`, `list` (idempotence, SIRET skip, 502), **aucun** appel FT réel
 
 ### E — Health
@@ -121,9 +121,9 @@ Dès qu’un endpoint est créé (ci-dessous) : DTO entrée, DTO **sortie** (jam
 
 Socle UI
 
-- [ ] Client HTTP unique, `credentials: 'include'`, **aucun** secret INSEE/FT en `NEXT_PUBLIC_*`
-- [ ] `error.tsx` / `not-found.tsx` ; `loading.tsx` / skeletons sur les listes
-- [ ] Header / Hero / Footer (badge Toulouse, nav : Explorer, Événements, Radar, Pistes, CRM)
+- [x] Client HTTP unique, `credentials: 'include'`, **aucun** secret INSEE/FT en `NEXT_PUBLIC_*` (pages `/login` `/register` ; 401 géré par la page, pas le client)
+- [ ] `error.tsx` / `not-found.tsx` ; `loading.tsx` / skeletons sur les listes (squelette **Pistes** déjà en place)
+- [ ] Header / Hero / Footer produit (badge Toulouse, nav : Explorer, Événements, Radar, Pistes, CRM) — en-tête **minimal** Accueil / Pistes / Connexion + footer Etalab sur `/pistes` déjà là
 - [ ] Pages légales : mentions, confidentialité (compte + CRM + `"P"` + cookie de session)
 
 Explorer & fiches
@@ -136,13 +136,13 @@ Explorer & fiches
 
 Pistes
 
-- [ ] Page `/pistes` : liste, filtres métier, potentiel France Travail (0–100) et repère « fort potentiel », mention « ce n’est pas une offre d’emploi » et « ce n’est pas un score Sonar », bouton Ajouter au CRM (`TO_CONTACT`)
-- [ ] Si LBB down : **cette page** en erreur ; Explorer / events / CRM continuent
-- [ ] Attribution Etalab (footer **et** page Pistes) :
-  - [ ] France Travail / La Bonne Boîte + **lien**
-  - [ ] Date de dernière mise à jour des données affichées
-  - [ ] Phrase : infos **indicatives** ; Sonar **n’est pas** un service officiel
-  - [ ] Même crédit INSEE / SIRENE (source + date)
+- [x] Page `/pistes` : liste, filtres métier, potentiel France Travail (0–100) et repère « fort potentiel », mention « ce n’est pas une offre d’emploi » et « ce n’est pas un score Sonar ». Bouton CRM **désactivé** (« bientôt ») ; `TO_CONTACT` = CRUD CRM plus bas
+- [x] Si LBB down : **cette page** en erreur (502 ≠ liste vide ≠ API éteinte) ; le reste du site ne dépend pas de LBB
+- [x] Attribution Etalab (footer **et** page Pistes) :
+  - [x] France Travail / La Bonne Boîte + **lien**
+  - [x] Date de dernière récupération LBB (`fetchedAt`) ; repli si indisponible
+  - [x] Phrase : infos **indicatives** ; Sonar **n’est pas** un service officiel
+  - [x] Crédit INSEE / Sirene (source + lien) ; date Sirene live (`lastSyncedAt`) pas encore (pas de changement `GET /leads`)
 
 Agenda / Radar _(API TTH dans la section suivante)_
 
@@ -170,4 +170,4 @@ CRM
 
 ---
 
-**Prochain code : front `/pistes`** (client HTTP + `/login` `/register`, puis liste). Health BDD (bloc E) n’est pas dans ce chantier. Ne pas rouvrir Sirene ni `GET /leads` sauf bug.
+**Prochain code : Health BDD (bloc E)**, puis le reste du front (Explorer, nav produit, pages légales). Ne pas rouvrir Sirene ni `GET /leads` sauf bug. CRM et agenda restent plus bas dans la file.
