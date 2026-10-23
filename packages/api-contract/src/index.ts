@@ -37,3 +37,12 @@ export type ListLeadsParams = {
   page?: number;
   pageSize?: number;
 };
+
+export type HealthReport = {
+  status: 'ok' | 'down';
+  process: { postgres: 'up' | 'down' };
+  dependencies: {
+    sirene: 'unchecked';
+    laBonneBoite: 'unchecked';
+  };
+};

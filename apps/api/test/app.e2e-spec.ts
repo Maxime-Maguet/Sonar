@@ -26,7 +26,15 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/health')
       .expect(200)
-      .expect({ status: 'ok' });
+      .expect('Cache-Control', 'no-store')
+      .expect({
+        status: 'ok',
+        process: { postgres: 'up' },
+        dependencies: {
+          sirene: 'unchecked',
+          laBonneBoite: 'unchecked',
+        },
+      });
   });
 
   afterEach(async () => {

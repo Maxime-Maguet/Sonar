@@ -135,7 +135,11 @@ npm run build -w web
 npm run build -w api
 ```
 
-Santé API : `GET http://localhost:3001/health` → `{ "status": "ok" }`.
+Santé API : `GET http://localhost:3001/health`. Postgres décide du process (`200` / `status: ok`, ou `503` / `status: down`). Sirene et La Bonne Boîte sont des dépendances `unchecked` : elles ne font pas échouer la route.
+
+```json
+{ "status": "ok", "process": { "postgres": "up" }, "dependencies": { "sirene": "unchecked", "laBonneBoite": "unchecked" } }
+```
 
 Prisma CLI : depuis `apps/api`, ou `npm run … -w api`, pour que `prisma.config.ts` charge le `.env` racine.
 
