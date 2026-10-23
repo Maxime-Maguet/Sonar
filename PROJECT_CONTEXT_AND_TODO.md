@@ -115,14 +115,15 @@ Dès qu’un endpoint est créé (ci-dessous) : DTO entrée, DTO **sortie** (jam
 
 ### E — Health
 
-- [ ] `GET /health` : ping **BDD** = process. SIRENE/LBB = deps pour le front. Un provider down **ne tue pas** l’API.
+- [x] `GET /health` : ping **BDD** = process. SIRENE/LBB = deps pour le front (`unchecked`, pas de sonde). Un provider down **ne tue pas** l’API.
 
 ### F — Front (le site)
 
 Socle UI
 
 - [x] Client HTTP unique, `credentials: 'include'`, **aucun** secret INSEE/FT en `NEXT_PUBLIC_*` (pages `/login` `/register` ; 401 géré par la page, pas le client)
-- [ ] `error.tsx` / `not-found.tsx` ; `loading.tsx` / skeletons sur les listes (squelette **Pistes** déjà en place)
+- [ ] `error.tsx` / `not-found.tsx`
+- [ ] `loading.tsx` / skeletons sur les listes (squelette **Pistes** déjà en place)
 - [ ] Header / Hero / Footer produit (badge Toulouse, nav : Explorer, Événements, Radar, Pistes, CRM) — en-tête **minimal** Accueil / Pistes / Connexion + footer Etalab sur `/pistes` déjà là
 - [ ] Pages légales : mentions, confidentialité (compte + CRM + `"P"` + cookie de session)
 
@@ -170,4 +171,4 @@ CRM
 
 ---
 
-**Prochain code : Health BDD (bloc E)**, puis le reste du front (Explorer, nav produit, pages légales). Ne pas rouvrir Sirene ni `GET /leads` sauf bug. CRM et agenda restent plus bas dans la file.
+**Prochain grill : pages d’erreur du site** (`error.tsx` et `not-found.tsx` seulement). Hors de ce grill : skeletons et `loading.tsx`, en-tête / hero / footer, pages légales, Explorer. Ne pas rouvrir Sirene, `GET /leads`, ni Health sauf bug. CRM et agenda restent plus bas dans la file.
