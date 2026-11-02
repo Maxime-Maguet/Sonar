@@ -6,24 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { login, register } from "@/lib/api/client";
 import { destinationAfterAuth } from "@/lib/auth/safe-next";
-import { ApiError } from "@/lib/api/errors";
-
-const LOGIN_ERROR = "Email ou mot de passe incorrect.";
+import { authFailureSentence } from "@/lib/auth/failure-copy";
 
 const fieldClassName =
   "h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 type Mode = "login" | "register";
-
-function registerError(error: unknown): string {
-  if (error instanceof ApiError && error.status === 409) {
-    return "Un compte existe déjà avec cet email.";
-  }
-  if (error instanceof ApiError && error.status === 400) {
-    return "Email invalide, ou mot de passe de moins de 8 caractères.";
-  }
-  return "Impossible de créer le compte. Réessayez.";
-}
 
 function otherPage(mode: Mode, next: string | null): string {
   const path = mode === "login" ? "/register" : "/login";
@@ -51,7 +39,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       else await register(credentials);
       router.push(destinationAfterAuth(next));
     } catch (caught) {
-      setError(isLogin ? LOGIN_ERROR : registerError(caught));
+      setError(authFailureSentence(mode, caught));
       setPending(false);
     }
   }
