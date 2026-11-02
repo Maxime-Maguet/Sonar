@@ -92,6 +92,7 @@ model Company {
   @@index([city])
   @@index([activityCode])
   @@index([companyType])
+  @@index([name])
 }
 
 model Technology {

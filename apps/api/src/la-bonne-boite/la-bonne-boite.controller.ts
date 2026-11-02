@@ -15,7 +15,7 @@ export class LaBonneBoiteController {
 
   @Get()
   @UseGuards(ThrottlerGuard, AuthGuard)
-  @SkipThrottle({ login: true, sireneSync: true })
+  @SkipThrottle({ login: true, sireneSync: true, companies: true })
   @Throttle({ laBonneBoite: { limit: 10, ttl: seconds(60) } })
   getLeads(@Query() query: ListLeadsQueryDto) {
     // query pour récupérer les paramètres de la requête

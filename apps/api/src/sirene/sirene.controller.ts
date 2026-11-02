@@ -36,7 +36,7 @@ export class SireneController {
   @Post('sync')
   @HttpCode(200)
   @UseGuards(ThrottlerGuard, AuthGuard, AdminGuard)
-  @SkipThrottle({ login: true })
+  @SkipThrottle({ login: true, companies: true })
   @Throttle({ sireneSync: { limit: 2, ttl: seconds(60) } })
   syncDiscovery() {
     return this.sirene.syncDiscovery();
@@ -50,7 +50,7 @@ export class SireneController {
 
   @Post(':siret/create')
   @UseGuards(ThrottlerGuard, AuthGuard, AdminGuard)
-  @SkipThrottle({ login: true })
+  @SkipThrottle({ login: true, companies: true })
   @Throttle({ sireneSync: { limit: 2, ttl: seconds(60) } }) // throttle pour limiter le nombre de requêtes par minute
   createCompany(@Param('siret', SiretPipe) siret: string) {
     return this.sirene.createEtablissement(siret);

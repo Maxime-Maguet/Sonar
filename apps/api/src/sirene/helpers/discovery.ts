@@ -21,6 +21,19 @@ export const DISCOVERY_NAF_REV2_CODES = [
   '62.09Z',
 ] as const;
 
+/** Libellés officiels NAF Rév. 2 des codes de la découverte (source unique). */
+export const ACTIVITY_LABELS: Readonly<Record<string, string>> = {
+  '62.01Z': 'Programmation informatique',
+  '62.02A': 'Conseil en systèmes et logiciels informatiques',
+  '58.29C': 'Édition de logiciels applicatifs',
+  '62.09Z': 'Autres activités informatiques',
+};
+
+/** Libellé d'un code d'activité ; un code inconnu s'affiche tel quel. */
+export function getActivityLabel(code: string): string {
+  return Object.hasOwn(ACTIVITY_LABELS, code) ? ACTIVITY_LABELS[code] : code;
+}
+
 export const DISCOVERY_NAF_25_CODES: readonly string[] = [];
 
 export const DISCOVERY_COMMUNES: ReadonlySet<string> = new Set(

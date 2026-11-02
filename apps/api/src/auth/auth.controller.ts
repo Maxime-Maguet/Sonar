@@ -33,7 +33,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   @UseGuards(ThrottlerGuard)
-  @SkipThrottle({ sireneSync: true })
+  @SkipThrottle({ sireneSync: true, companies: true })
   @Throttle({ login: { limit: 5, ttl: seconds(60) } })
   login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     return this.authService.login(dto.email, dto.password, res);
