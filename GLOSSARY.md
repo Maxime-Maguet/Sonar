@@ -11,7 +11,7 @@ _À éviter_ : offre, annonce, job.
 
 **Fort potentiel** : repère booléen fourni par France Travail. Son absence n'exclut pas la piste : une piste « non fort potentiel » reste listée.
 
-**Annuaire** : ensemble des entreprises de Toulouse et 1re couronne dont l'activité principale (NAF) relève de l'informatique, issues de Sirene. Il ne dit pas qu'elles recrutent, ni que leur stack est connue. Une entreprise sans signal reste dans l'annuaire.
+**Annuaire** : ensemble des établissements sièges employeurs actifs de Toulouse et 1re couronne dont l'activité principale (NAF) relève de l'informatique, issus de Sirene. « Employeur » ne dit pas qu'ils recrutent : ça sert à découvrir. Il ne dit pas qu'elles recrutent, ni que leur stack est connue. Une entreprise sans signal reste dans l'annuaire.
 
 **Fiche** : la page d'une entreprise de l'annuaire.
 _À éviter_ : profil.

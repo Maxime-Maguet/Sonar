@@ -76,16 +76,24 @@ function orGroup(field: string, codes: readonly string[]): string {
   return `${field}:(${codes.join(' OR ')})`;
 }
 
+/**
+ * Requête de découverte : sièges d'établissements actifs et employeurs, dans
+ * les communes du filet, avec un NAF tech. Ces filtres servent uniquement à
+ * DÉCOUVRIR des entreprises ; ils ne disent pas qu'elle recrute.
+ *
+ * Les champs historisés (état administratif, activité, caractère employeur)
+ * ne sont valides qu'à l'intérieur de `periode(...)` (sinon INSEE répond 400).
+ * `codeCommuneEtablissement` et `etablissementSiege` restent en dehors.
+ *
+ * NAF25 ne peut PAS être interrogé via `q` (INSEE 400, vérifié, y compris dans
+ * `periode(...)`) : il est filtré côté client après récupération, via
+ * `isInDiscoveryNafScope`.
+ */
 export function buildDiscoverySearchQuery(
   communes: readonly string[] = DISCOVERY_COMMUNE_CODES,
   nafRev2: readonly string[] = DISCOVERY_NAF_REV2_CODES,
-  naf25: readonly string[] = DISCOVERY_NAF_25_CODES,
 ): string {
   const communesQ = orGroup('codeCommuneEtablissement', communes);
   const rev2Q = orGroup('activitePrincipaleEtablissement', nafRev2);
-  const nafQ =
-    naf25.length > 0
-      ? `(${rev2Q} OR ${orGroup('activitePrincipaleNAF25Etablissement', naf25)})`
-      : `(${rev2Q})`;
-  return `periode(etatAdministratifEtablissement:A) AND etablissementSiege:true AND ${communesQ} AND ${nafQ}`;
+  return `periode(etatAdministratifEtablissement:A AND ${rev2Q} AND caractereEmployeurEtablissement:O) AND etablissementSiege:true AND ${communesQ}`;
 }

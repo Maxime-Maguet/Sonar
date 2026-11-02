@@ -6,7 +6,7 @@ Outil **personnel / portfolio**, pas un job board et pas un service officiel. Tu
 
 Deux couches données en V1 :
 
-1. **SIRENE (INSEE)** remplit l’annuaire (Toulouse + 1re couronne, quelques NAF). Le code APE sert à **découvrir** des boîtes, pas à dire « elles recrutent ».
+1. **SIRENE (INSEE)** remplit l’annuaire (sièges employeurs actifs, Toulouse + 1re couronne, quelques NAF tech). Le code APE et le caractère employeur servent à **découvrir** des boîtes, pas à dire « elles recrutent ».
 2. **La Bonne Boîte (France Travail)** marque qui peut embaucher (~6 mois), avec son potentiel **0–100** sourcé, relié par SIREN/SIRET.
 
 ---

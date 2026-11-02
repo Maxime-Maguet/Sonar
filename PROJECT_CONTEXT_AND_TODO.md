@@ -13,7 +13,7 @@ Hors V1 (produit **et** socle) : upload, Hunter / mails auto, SIRENE France enti
 
 - **Produit :** centraliser les entreprises tech de Toulouse, et parmi elles celles qui peuvent embaucher. Agenda + CRM perso en plus. Pas un job board.
 - **Deux couches données (cœur V1) :**
-  1. **SIRENE ciblé** (Toulouse + 1re couronne + quelques codes NAF) = **l’annuaire**. Le NAF sert à découvrir des entreprises, pas à dire « elles recrutent ».
+  1. **SIRENE ciblé** (sièges employeurs actifs, Toulouse + 1re couronne + quelques codes NAF tech) = **l’annuaire**. Le NAF et le caractère employeur servent à découvrir des entreprises, pas à dire « elles recrutent ».
   2. **La Bonne Boîte** = **qui peut embaucher** pour un métier, sur ~6 mois. Relier par SIREN/SIRET. Une société sans signal reste une fiche d’annuaire. Une société avec un signal `POTENTIAL_RECRUITMENT` est une piste pour ce ROME.
 - **Potentiel France Travail en V1** (rouvert le 12 oct. 2026, OpenAPI LBB v2.27.3) : `hiring_potential` est un nombre **0–100** (ou absent). `is_high_potential` est un booléen (ou absent) : « fort potentiel », pas « cette ligne n’est pas une piste ». L’exemple officiel du schéma est une entreprise renvoyée par `/recherche` avec `is_high_potential: false`. On **garde** les deux sur le signal et on les **affiche** dans `GET /leads` et sur `/pistes`, toujours attribués à La Bonne Boîte. On ne recalcule pas, on ne filtre pas les `false`. L’ordre de la liste reste celui de France Travail (score décroissant).
 - **Pas un job board.** Les pistes LBB = potentiel d’embauche, pas des offres.
@@ -97,7 +97,7 @@ Dès qu’un endpoint est créé (ci-dessous) : DTO entrée, DTO **sortie** (jam
 **Sirene** — Sirene est complétée et terminée (`src/sirene`)
 
 - [x] `prisma migrate deploy` + apply Docker/CI
-- [x] Communes Toulouse + 1re couronne + NAF découverte **en config** (ex. 62.01Z, 62.02A, 58.29C, 62.09Z en NAF Rev2 ; liste ajustable, pas toute la France)
+- [x] Communes Toulouse + 1re couronne + NAF découverte **en config** (ex. 62.01Z, 62.02A, 58.29C, 62.09Z en NAF Rev2 ; liste ajustable, pas toute la France). Requête `q` : sièges, établissements actifs et **employeurs** (`caractereEmployeurEtablissement:O`), champs historisés dans `periode(...)` (~1070 résultats, sous le plafond de 5000). Employeur ≠ recrute. NAF25 non interrogeable via `q` (INSEE 400) : filtré côté client.
 - [x] Garder APE + nomenclature (`NAFRev2` / `NAF25`) ; ne pas filtrer comme si les codes 2026 restaient valides après janv. 2027
 - [x] Retry / backoff (429, 5xx, timeout) ; throttle de sync
 - [x] `Company.source` + `lastSyncedAt` (crédit Etalab, pas seulement `updatedAt`)

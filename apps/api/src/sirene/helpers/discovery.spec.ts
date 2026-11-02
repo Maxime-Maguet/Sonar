@@ -71,25 +71,68 @@ describe('discovery', () => {
     expect(isInDiscoveryNafScope({})).toBe(false);
   });
 
-  it('omits the NAF25 clause from q while the parallel list is empty', () => {
-    const q = buildDiscoverySearchQuery();
-    expect(q).toContain('periode(etatAdministratifEtablissement:A)');
-    expect(q).toContain('etablissementSiege:true');
-    expect(q).toContain('codeCommuneEtablissement:(31555 OR 31069');
-    expect(q).toContain(
-      'activitePrincipaleEtablissement:(62.01Z OR 62.02A OR 58.29C OR 62.09Z)',
-    );
-    expect(q).not.toContain('activitePrincipaleNAF25Etablissement');
-  });
+  describe('buildDiscoverySearchQuery', () => {
+    /** Contenu du premier groupe `periode(...)`, parenthèses équilibrées. */
+    function periodeContent(q: string): { inside: string; outside: string } {
+      const start = q.indexOf('periode(');
+      expect(start).toBeGreaterThanOrEqual(0);
+      const open = start + 'periode'.length;
+      let depth = 0;
+      for (let i = open; i < q.length; i += 1) {
+        if (q[i] === '(') depth += 1;
+        if (q[i] === ')') depth -= 1;
+        if (depth === 0) {
+          return {
+            inside: q.slice(open + 1, i),
+            outside: q.slice(0, start) + q.slice(i + 1),
+          };
+        }
+      }
+      throw new Error('unbalanced periode(');
+    }
 
-  it('adds the NAF25 OR clause when that allowlist is non-empty', () => {
-    const q = buildDiscoverySearchQuery(
-      ['31555'],
-      ['62.01Z'],
-      ['62.10A'],
-    );
-    expect(q).toBe(
-      'periode(etatAdministratifEtablissement:A) AND etablissementSiege:true AND codeCommuneEtablissement:(31555) AND (activitePrincipaleEtablissement:(62.01Z) OR activitePrincipaleNAF25Etablissement:(62.10A))',
-    );
+    it('produces the exact verified default query', () => {
+      expect(buildDiscoverySearchQuery()).toBe(
+        'periode(etatAdministratifEtablissement:A AND activitePrincipaleEtablissement:(62.01Z OR 62.02A OR 58.29C OR 62.09Z) AND caractereEmployeurEtablissement:O) AND etablissementSiege:true AND codeCommuneEtablissement:(31555 OR 31069 OR 31149 OR 31557 OR 31157 OR 31044 OR 31561 OR 31506 OR 31446 OR 31056 OR 31022)',
+      );
+    });
+
+    it('keeps historised fields inside periode() and others outside', () => {
+      const { inside, outside } = periodeContent(buildDiscoverySearchQuery());
+      expect(inside).toContain('etatAdministratifEtablissement:A');
+      expect(inside).toContain('activitePrincipaleEtablissement:(');
+      expect(inside).toContain('caractereEmployeurEtablissement:O');
+      expect(inside).not.toContain('codeCommuneEtablissement');
+      expect(inside).not.toContain('etablissementSiege');
+      expect(outside).toContain('codeCommuneEtablissement:(');
+      expect(outside).toContain('etablissementSiege:true');
+      expect(outside).not.toContain('activitePrincipaleEtablissement');
+      expect(outside).not.toContain('caractereEmployeurEtablissement');
+      expect(outside).not.toContain('etatAdministratifEtablissement');
+    });
+
+    it('never emits a NAF25 field, whatever the lists passed', () => {
+      const extra = (
+        buildDiscoverySearchQuery as (...args: string[][]) => string
+      )(['31555'], ['62.01Z'], ['62.10A']);
+      expect(extra).not.toContain('NAF25');
+      expect(buildDiscoverySearchQuery()).not.toContain('NAF25');
+      expect(extra).not.toContain('62.10A');
+    });
+
+    it('has balanced parentheses', () => {
+      for (const q of [
+        buildDiscoverySearchQuery(),
+        buildDiscoverySearchQuery(['31555'], ['62.01Z']),
+      ]) {
+        let depth = 0;
+        for (const char of q) {
+          if (char === '(') depth += 1;
+          if (char === ')') depth -= 1;
+          expect(depth).toBeGreaterThanOrEqual(0);
+        }
+        expect(depth).toBe(0);
+      }
+    });
   });
 });

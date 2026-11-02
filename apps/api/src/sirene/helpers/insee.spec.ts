@@ -219,16 +219,15 @@ describe('InseeClient', () => {
     );
   });
 
-  it('forwards a non-empty NAF25 clause in search q', async () => {
-    const q = buildDiscoverySearchQuery(['31555'], ['62.01Z'], ['62.10A']);
+  it('never sends a NAF25 clause in search q (INSEE 400)', async () => {
+    const q = buildDiscoverySearchQuery(['31555'], ['62.01Z']);
     fetchSpy.mockResolvedValue(jsonResponse({ etablissements: [] }));
 
     await client.searchEtablissements(q);
 
     const url = new URL(String(fetchSpy.mock.calls[0]?.[0]));
-    expect(url.searchParams.get('q')).toContain(
-      'activitePrincipaleNAF25Etablissement:(62.10A)',
-    );
+    expect(url.searchParams.get('q')).toBe(q);
+    expect(url.searchParams.get('q')).not.toContain('NAF25');
   });
 
   it('parses search etablissements and paginates until header.total', async () => {
