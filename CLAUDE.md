@@ -46,3 +46,14 @@ Un seul test : `npm run test -w api -- src/auth/auth.service.spec.ts` ou `-- -t 
 - Tests colocalisés avec le code (`*.spec.ts` api, `*.test.ts` web) ; fixtures LBB dans `la-bonne-boite/helpers/search.fixture.ts`.
 - Validation d'entrée via DTO class-validator (`ValidationPipe` global : `whitelist` + `forbidNonWhitelisted`).
 - Docs et commentaires en français.
+
+## Méthode de travail et reprise de session
+
+Chaîne utilisée : **carte** (`wayfinder:map`, ex. #17) → tickets de décision (`wayfinder:grilling`) → **spec** → tickets d'implémentation (`ready-for-agent`). Les décisions fermées ne se rouvrent pas : elles sont dans « Decisions so far » de la carte et dans les commentaires de résolution des tickets.
+
+- **Reprendre** : lire « Où on en est » en bas de `PROJECT_CONTEXT_AND_TODO.md` (état et ordre des tickets), puis `gh issue view <n> --comments` sur le ticket et sur sa spec parente. Lancer `/feature Maxime-Maguet/Sonar#<n>`, **un ticket par session**.
+- **Dépendances** : respecter « Blocked by » (dépendances natives GitHub : `gh api repos/Maxime-Maguet/Sonar/issues/<n>/dependencies/blocked_by`). Un ticket sans `ready-for-agent` est à faire par le propriétaire (étapes sur ses comptes, ex. déploiement de test) : ne pas le prendre.
+- **Tests** : un seul seam, des **modules purs** (`lib/` côté web, config côté api) testés par Vitest en environnement `node`. Pas de jsdom, Testing Library ni e2e tant que ce n'est pas décidé. Les composants ne portent aucune logique : les vérifier à la main dans le navigateur (390 px et ordinateur).
+- **Next.js 16** : lire `node_modules/next/dist/docs` avant d'écrire (groupes de routes, `rewrites`, layouts), voir `apps/web/AGENTS.md`.
+- **`gh issue create` / `gh issue edit`** ont échoué par intermittence (erreur GraphQL) : repli `gh api repos/Maxime-Maguet/Sonar/issues -f title=… -F body=@fichier`.
+- **Docs à garder à jour** en fin de ticket : `PROJECT_CONTEXT_AND_TODO.md` (cocher, « Où on en est »), `README.md` et `apps/web/README.md` (routes, API exposée).
