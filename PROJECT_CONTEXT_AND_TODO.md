@@ -127,7 +127,7 @@ Socle UI
 - [ ] `loading.tsx` / skeletons sur les listes (squelette **Pistes** déjà en place)
 - [ ] Header / Hero / Footer produit (badge Toulouse, nav : Explorer, Événements, Radar, Pistes, CRM). **Décisions prises** (carte #17, tickets de décision #18 à #21 fermés) et **spec #22** écrite. À implémenter, dans l'ordre : [ ] #23 cadre `(site)` + menu ordinateur → [ ] #25 menu replié téléphone → [ ] #27 session visible (email + Déconnexion) → [ ] #28 nouvel accueil (présentation, compteurs, actions) ; en parallèle : [ ] #26 pied de page commun (après #23) et [ ] #24 marque « Sonar » sur `/login` et `/register`. État actuel : en-tête minimal Accueil / Pistes / Explorer / Connexion dessiné page par page sur `/pistes` et `/explorer` seulement ; pieds de page Etalab propres à chaque page.
 - [ ] Pages légales : mentions, confidentialité (compte + CRM + `"P"` + cookie de session). Pas encore de ticket (contenu à fournir : identité de l'éditeur). Le pied de page (#26) et les écrans `/login` `/register` n'affichent un lien que quand sa page existe. Adresses prévues : `/mentions-legales`, `/confidentialite`
-- [ ] Vérifier le cookie de session en déploiement : API et site sur le même domaine enregistrable (le cookie est `SameSite=Lax`, sans `Domain`) ; si le serveur Next doit lire la session, il faut en plus un attribut `Domain`. D'ici là, la session visible est lue dans le navigateur (`GET /auth/me`)
+- [ ] Déploiement (voir bloc H) : décisions prises dans #29 (fermé). La session visible reste lue dans le navigateur (`GET /auth/me`) et ne dépend pas de ce bloc
 
 Explorer & fiches
 
@@ -166,6 +166,19 @@ CRM
 - [ ] GitHub Actions (pas de K8s)
 - [ ] E2E Playwright **après** le CRM : login → explorer → fiche → piste → CRM → historique
 
+### H — Déploiement (Vercel)
+
+Décisions : #29 (fermé). Spec : #30. Tickets : [ ] #31 adresses de base poolée / directe, [ ] #32 `trust proxy`, [ ] #33 une seule origine côté site (ces trois sont indépendants) → [ ] #34 guide de déploiement → [ ] #35 déploiement de test et vérifications (étapes humaines, sans label d'agent). Site Next.js et API NestJS = deux projets Vercel (plan Hobby), base **Prisma Postgres** (intégration Vercel, région européenne), pas de domaine propre. Limite connue : les limites de débit sont en mémoire, non partagées entre instances (hors périmètre de #30).
+
+- [ ] **Une seule origine** : le site relaie l'API par réécriture (`rewrites` Next vers l'API). Le cookie `sonar_session` reste first-party, `SameSite=Lax`. Raison : deux projets en `*.vercel.app` sont deux sites distincts, le cookie ne passerait pas. `NEXT_PUBLIC_API_URL` et `WEB_ORIGIN` = adresse du site ; variable serveur distincte pour l'annuaire public rendu côté serveur
+- [ ] `trust proxy` côté API : sans lui, les limites par IP (login 5/min, annuaire 60/min) comptent l'adresse du relais. Le nombre de sauts est à mesurer sur le déploiement de test
+- [ ] Deux adresses de base : l'application lit `DATABASE_URL_POOLED` (repli `DATABASE_URL`) ; les migrations (`prisma migrate deploy`) gardent l'adresse directe `DATABASE_URL`. Aligner le Docker local sur PostgreSQL 17 (Prisma Postgres)
+- [ ] Prévisualisations Vercel : connexion sur l'adresse stable seulement (`WEB_ORIGIN` = une seule origine, CSRF strict)
+- [ ] Synchronisation Sirene : `POST /sirene/sync` (admin) sur l'API déployée, après avoir chronométré une synchro ; repli : la lancer depuis le poste local contre la base de production. Le rôle `ADMIN` se pose en base à la main
+- [ ] Vérifier sur un déploiement de test : connexion, `GET /leads` envoie le cookie et répond 200 (`GET /auth/me` après #27), limite par IP comptée par visiteur, durée de la synchro, démarrage de NestJS en fonction Vercel, `Set-Cookie` à travers la réécriture
+- [ ] À lire avant de s'engager : durée maximale d'une fonction sur Hobby, définition d'une « opération » et pause éventuelle de l'offre gratuite Prisma Postgres
+- [ ] Inscriptions ouvertes à tous en production ? (à trancher)
+
 ### Agenda API (après LBB, avant ou après le Kanban)
 
 - [ ] Adapter Toulouse Tech Hub (ICS/JSON), idempotence `(source, externalId)`
@@ -175,4 +188,6 @@ CRM
 
 **Où on en est (2 nov. 2026).** Fait : pages d'erreur (#9, #10), phrases d'échec connexion / inscription (#11), annuaire public `/explorer` et `GET /companies` (#12 à #14), corrections Sirene (#15, #16). Navigation et UX : carte #17, décisions #18 à #21 fermées, spec #22 publiée, tickets d'implémentation #23 à #28 prêts (`ready-for-agent`).
 
-**Prochaine étape :** implémenter #23 (cadre `(site)` + menu ordinateur) puis #25, #27, #28, avec #26 et #24 en parallèle. Hors de cette file : skeletons et `loading.tsx`, pages légales, fiche `/explorer/[slug]`, filtre par technologie. Ne pas rouvrir Sirene, `GET /leads`, ni Health sauf bug. CRM et agenda restent plus bas dans la file.
+Déploiement : décisions #29 (fermé), spec #30, tickets #31 à #35 prêts (bloc H).
+
+**Prochaine étape :** implémenter #23 (cadre `(site)` + menu ordinateur) puis #25, #27, #28, avec #26 et #24 en parallèle. Les tickets de déploiement #31, #32, #33 sont indépendants et peuvent se faire à tout moment. Hors de cette file : skeletons et `loading.tsx`, pages légales, fiche `/explorer/[slug]`, filtre par technologie. Ne pas rouvrir Sirene, `GET /leads`, ni Health sauf bug. CRM et agenda restent plus bas dans la file.
