@@ -77,18 +77,22 @@ Seed actuel : **technologies seulement**. Pas d’entreprises fictives ; l’ann
 Ordre de build (le détail coché est dans [`PROJECT_CONTEXT_AND_TODO.md`](PROJECT_CONTEXT_AND_TODO.md)) :
 
 1. Scaffold Nest + Next + Prisma + Docker — **fait**
-2. SIRENE ciblé (provider Nest, sync admin) — **fait** ; Explorer UI pas encore
-3. Auth cookie JWT — **API + pages `/login` `/register` faites**
+2. SIRENE ciblé (provider Nest, sync admin) — **fait** ; annuaire public **`GET /companies` + page `/explorer` faits** (filtres ville et activité, pagination) ; fiche d'une entreprise pas encore
+3. Auth cookie JWT — **API + pages `/login` `/register` faites** ; pages d'erreur du site faites
 4. LBB overlay — **`GET /leads` + page `/pistes` + mentions Etalab faites** (session, Toulouse durci, potentiel France Travail y compris `is_high_potential: false` ; 502 LBB ≠ liste vide ≠ API éteinte)
-5. Toulouse Tech Hub + Radar
-6. CRM Kanban
+5. Navigation et UX du site (menu, session visible, pied de page, accueil) — **décisions prises (carte #17), spec #22, tickets #23 à #28 à implémenter**
+6. Toulouse Tech Hub + Radar
+7. CRM Kanban
 
 ### API déjà exposée (local)
 
 | Méthode | Chemin | Auth |
 |---|---|---|
 | `POST` | `/auth/register`, `/auth/login` | CSRF (`Origin` ∈ liste `WEB_ORIGIN`) |
+| `POST` | `/auth/logout` | CSRF ; 204, efface toujours le cookie |
 | `GET` | `/auth/me` | cookie `sonar_session` |
+| `GET` | `/companies` | public ; query `city`, `activityCode`, `page`, `pageSize` (max 50) ; sièges Sirene hors diffusion « P » ; throttle 60 req / 60 s |
+| `GET` | `/health` | public ; ping Postgres |
 | `GET` | `/leads?rome=M1805` | cookie `sonar_session` ; query `rome` obligatoire, `page` / `pageSize` optionnels |
 | `GET` | `/sirene/:siret` | public |
 | `POST` | `/sirene/sync` | session **admin** |

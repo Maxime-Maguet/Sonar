@@ -33,6 +33,7 @@ Hors V1 (produit **et** socle) : upload, Hunter / mails auto, SIRENE France enti
 - **LBB = `RecruitmentSignal`**, jamais `JobOpportunity`. CRM : `Application` → `Company` (+ signal optionnel).
 - **Session V1 :** un JWT HS256 dans le cookie `sonar_session` (HttpOnly, SameSite=Lax, Path=/, Secure en prod), durée 24 h, champ `ver` = `User.sessionVersion`. Incrémenter `sessionVersion` révoque tous les tickets. Réémission glissante si le JWT a déjà vécu plus de 12 h. Refresh token = V2. Logout efface toujours le cookie et n'incrémente `sessionVersion` que si le JWT est encore valide et `ver` correspond ; email stocké en trim+lowercase ; échec de login = une seule 401 ; `cookie-parser` remplit `request.cookies`. DTO, throttle login et CORS `WEB_ORIGIN` sont en place.
 - **CSRF V1 :** sur POST / PUT / PATCH / DELETE, `Origin` doit être strictement présente dans la liste `WEB_ORIGIN` (origines séparées par des virgules, parseur partagé `config/web-origins.ts`). Pas de double-submit (cookie API illisible depuis le front). Pas de mutation sur GET.
+- **Navigation et UX (carte #17, spec #22) :** menu et pied de page dessinés une fois dans le cadre `(site)` (hors `/login`, `/register` et pages d'erreur). Menu : marque « Sonar » (lien vers l'accueil), Explorer, Pistes, puis Événements, Radar, CRM en texte grisé « bientôt ». Repli en bouton « Menu » sous 768 px. Thème clair/sombre dans le menu. Session lue dans le navigateur (`GET /auth/me`) : email + « Déconnexion » une fois connecté, `next` = page courante sur chaque lien de connexion, déconnexion vers l'accueil. Pied de page commun (« pas un service officiel », liens légaux quand les pages existent) + bloc de sources par page. Accueil : présentation du produit (le futur décrit comme prévu), 3 compteurs (« — » sans donnée, jamais « 0 »), action « Explorer l'annuaire ». Page de couleurs supprimée.
 
 ---
 
@@ -124,14 +125,15 @@ Socle UI
 - [x] Client HTTP unique, `credentials: 'include'`, **aucun** secret INSEE/FT en `NEXT_PUBLIC_*` (pages `/login` `/register` ; 401 géré par la page, pas le client)
 - [x] `error.tsx` / `not-found.tsx` (+ `global-error.tsx`, phrases d'échec connexion / inscription)
 - [ ] `loading.tsx` / skeletons sur les listes (squelette **Pistes** déjà en place)
-- [ ] Header / Hero / Footer produit (badge Toulouse, nav : Explorer, Événements, Radar, Pistes, CRM) — en-tête **minimal** Accueil / Pistes / Connexion + footer Etalab sur `/pistes` déjà là
-- [ ] Pages légales : mentions, confidentialité (compte + CRM + `"P"` + cookie de session)
+- [ ] Header / Hero / Footer produit (badge Toulouse, nav : Explorer, Événements, Radar, Pistes, CRM). **Décisions prises** (carte #17, tickets de décision #18 à #21 fermés) et **spec #22** écrite. À implémenter, dans l'ordre : [ ] #23 cadre `(site)` + menu ordinateur → [ ] #25 menu replié téléphone → [ ] #27 session visible (email + Déconnexion) → [ ] #28 nouvel accueil (présentation, compteurs, actions) ; en parallèle : [ ] #26 pied de page commun (après #23) et [ ] #24 marque « Sonar » sur `/login` et `/register`. État actuel : en-tête minimal Accueil / Pistes / Explorer / Connexion dessiné page par page sur `/pistes` et `/explorer` seulement ; pieds de page Etalab propres à chaque page.
+- [ ] Pages légales : mentions, confidentialité (compte + CRM + `"P"` + cookie de session). Pas encore de ticket (contenu à fournir : identité de l'éditeur). Le pied de page (#26) et les écrans `/login` `/register` n'affichent un lien que quand sa page existe. Adresses prévues : `/mentions-legales`, `/confidentialite`
+- [ ] Vérifier le cookie de session en déploiement : API et site sur le même domaine enregistrable (le cookie est `SameSite=Lax`, sans `Domain`) ; si le serveur Next doit lire la session, il faut en plus un attribut `Domain`. D'ici là, la session visible est lue dans le navigateur (`GET /auth/me`)
 
 Explorer & fiches
 
-- [ ] **Stats hero en live** (count companies, techs distinctes, events du mois) — jamais de « 120+ » en dur
-- [ ] `GET /companies` + page `/explorer` : filtres URL (`tech` cumulatif AND, type, ville), pagination, DTO
-- [ ] Cartes entreprise
+- [ ] **Stats hero en live** (count companies, techs distinctes, events du mois) — jamais de « 120+ » en dur. Prévu dans le ticket #28 (nouvel accueil) : compteur entreprises en direct avec source et date ; technologies et événements affichent « — » tant que rien ne les alimente
+- [x] `GET /companies` + page `/explorer` (#12, #13, #14) : annuaire public, filtres URL ville + activité, pagination (20 par page), DTO, throttle 60 req/min, sources et date de synchro en pied de page. Les filtres `tech` (cumulatif AND) et `type` restent à faire (aucune technologie n'est enregistrée, le type n'est pas rempli)
+- [x] Cartes entreprise (nom, commune, activité ; sans SIREN, SIRET ni adresse). Une carte ne mène nulle part tant que la fiche n'existe pas
 - [ ] Fiche `/explorer/[slug]` : SIREN, adresse selon `"P"`, stacks sourcées (`SEED_MANUAL`, etc.), signaux, events, CTA « ajouter au CRM »
 - [ ] Bloc « Piste spontanée » sur la fiche s’il existe un signal LBB
 
@@ -171,4 +173,6 @@ CRM
 
 ---
 
-**Prochain grill : pages d’erreur du site** (`error.tsx` et `not-found.tsx` seulement). Hors de ce grill : skeletons et `loading.tsx`, en-tête / hero / footer, pages légales, Explorer. Ne pas rouvrir Sirene, `GET /leads`, ni Health sauf bug. CRM et agenda restent plus bas dans la file.
+**Où on en est (2 nov. 2026).** Fait : pages d'erreur (#9, #10), phrases d'échec connexion / inscription (#11), annuaire public `/explorer` et `GET /companies` (#12 à #14), corrections Sirene (#15, #16). Navigation et UX : carte #17, décisions #18 à #21 fermées, spec #22 publiée, tickets d'implémentation #23 à #28 prêts (`ready-for-agent`).
+
+**Prochaine étape :** implémenter #23 (cadre `(site)` + menu ordinateur) puis #25, #27, #28, avec #26 et #24 en parallèle. Hors de cette file : skeletons et `loading.tsx`, pages légales, fiche `/explorer/[slug]`, filtre par technologie. Ne pas rouvrir Sirene, `GET /leads`, ni Health sauf bug. CRM et agenda restent plus bas dans la file.
