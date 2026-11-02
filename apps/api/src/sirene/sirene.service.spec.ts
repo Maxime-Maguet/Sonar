@@ -212,6 +212,9 @@ describe('syncDiscovery', () => {
       skipped: 0,
       skippedOutOfScope: 1,
       truncated: false,
+      expectedTotal: 2,
+      duplicates: 0,
+      mismatch: false,
     });
     expect(upsert).toHaveBeenCalledOnce();
     expect(fetchSpy).toHaveBeenCalledOnce();
@@ -261,6 +264,9 @@ describe('syncDiscovery', () => {
       skipped: 0,
       skippedOutOfScope: 1,
       truncated: false,
+      expectedTotal: 1,
+      duplicates: 0,
+      mismatch: false,
     });
     expect(upsert).not.toHaveBeenCalled();
 
@@ -299,6 +305,9 @@ describe('syncDiscovery', () => {
       skipped: 0,
       skippedOutOfScope: 0,
       truncated: false,
+      expectedTotal: 1,
+      duplicates: 0,
+      mismatch: false,
     });
     expect(upsert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -396,6 +405,9 @@ describe('syncDiscovery', () => {
       skipped: 2,
       skippedOutOfScope: 0,
       truncated: false,
+      expectedTotal: 2,
+      duplicates: 0,
+      mismatch: false,
     });
     expect(upsert).not.toHaveBeenCalled();
 
@@ -436,6 +448,9 @@ describe('syncDiscovery', () => {
       skipped: 1,
       skippedOutOfScope: 0,
       truncated: false,
+      expectedTotal: 1,
+      duplicates: 0,
+      mismatch: false,
     });
 
     const messages = warn.mock.calls.flat().map(String).join(' ');
@@ -471,6 +486,9 @@ describe('syncDiscovery', () => {
       skipped: 1,
       skippedOutOfScope: 0,
       truncated: false,
+      expectedTotal: 1,
+      duplicates: 0,
+      mismatch: false,
     });
 
     expect(warn.mock.calls.flat().map(String).join(' ')).toContain(
@@ -521,6 +539,9 @@ describe('syncDiscovery', () => {
       skipped: 1,
       skippedOutOfScope: 0,
       truncated: false,
+      expectedTotal: 1,
+      duplicates: 0,
+      mismatch: false,
     });
 
     const warnText = warn.mock.calls.flat().map(String).join(' ');
@@ -543,6 +564,7 @@ describe('syncDiscovery', () => {
         etablissements: [inScopeEtablissement('12345678900012')],
         truncated: true,
         total: 50,
+        duplicates: 0,
       }),
     };
     const service = new SireneService(
@@ -556,6 +578,193 @@ describe('syncDiscovery', () => {
       skipped: 0,
       skippedOutOfScope: 0,
       truncated: true,
+      expectedTotal: 50,
+      duplicates: 0,
+      mismatch: true,
+    });
+  });
+
+  describe('total reconciliation', () => {
+    const SIRET_A = '12345678900012';
+    const SIRET_B = '98765432100011';
+    const SIRET_C = '55555555500013';
+
+    function serviceWithSearch(search: object) {
+      const upsert = vi.fn().mockResolvedValue({ id: 'company-1' });
+      const insee = {
+        getSiret: vi.fn(),
+        searchEtablissements: vi.fn().mockResolvedValue(search),
+      };
+      const service = new SireneService(
+        { company: { upsert } } as never,
+        insee as never,
+      );
+      return { service, upsert };
+    }
+
+    function mismatchWarnings(warn: { mock: { calls: unknown[][] } }) {
+      return warn.mock.calls
+        .flat()
+        .map(String)
+        .filter((msg) => msg.includes('sync mismatch'));
+    }
+
+    let warn: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      warn = vi
+        .spyOn(Logger.prototype, 'warn')
+        .mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+      warn.mockRestore();
+    });
+
+    it('reports duplicates and processes each distinct row once', async () => {
+      const { service, upsert } = serviceWithSearch({
+        etablissements: [
+          inScopeEtablissement(SIRET_A),
+          inScopeEtablissement(SIRET_B),
+        ],
+        total: 2,
+        duplicates: 3,
+        truncated: false,
+      });
+
+      await expect(service.syncDiscovery()).resolves.toEqual({
+        scanned: 2,
+        upserted: 2,
+        skipped: 0,
+        skippedOutOfScope: 0,
+        truncated: false,
+        expectedTotal: 2,
+        duplicates: 3,
+        mismatch: false,
+      });
+      expect(upsert).toHaveBeenCalledTimes(2);
+      expect(mismatchWarnings(warn)).toHaveLength(0);
+    });
+
+    it('flags a mismatch and warns when more rows are read than announced', async () => {
+      const { service } = serviceWithSearch({
+        etablissements: [
+          inScopeEtablissement(SIRET_A),
+          inScopeEtablissement(SIRET_B),
+          inScopeEtablissement(SIRET_C),
+        ],
+        total: 2,
+        duplicates: 0,
+        truncated: false,
+      });
+
+      const result = await service.syncDiscovery();
+
+      expect(result.mismatch).toBe(true);
+      expect(result.expectedTotal).toBe(2);
+      expect(result.scanned).toBe(3);
+      expect(mismatchWarnings(warn)).toHaveLength(1);
+    });
+
+    it('flags a mismatch and warns when fewer rows are read without truncation', async () => {
+      const { service } = serviceWithSearch({
+        etablissements: [inScopeEtablissement(SIRET_A)],
+        total: 3,
+        duplicates: 0,
+        truncated: false,
+      });
+
+      const result = await service.syncDiscovery();
+
+      expect(result.mismatch).toBe(true);
+      expect(result.expectedTotal).toBe(3);
+      expect(result.truncated).toBe(false);
+      expect(mismatchWarnings(warn)).toHaveLength(1);
+    });
+
+    it('does not flag a mismatch when distinct rows match the total', async () => {
+      const { service } = serviceWithSearch({
+        etablissements: [inScopeEtablissement(SIRET_A)],
+        total: 1,
+        duplicates: 0,
+        truncated: false,
+      });
+
+      const result = await service.syncDiscovery();
+
+      expect(result.mismatch).toBe(false);
+      expect(result.expectedTotal).toBe(1);
+      expect(mismatchWarnings(warn)).toHaveLength(0);
+    });
+
+    it('sets expectedTotal to null and no mismatch when INSEE sends no total', async () => {
+      const { service } = serviceWithSearch({
+        etablissements: [
+          inScopeEtablissement(SIRET_A),
+          inScopeEtablissement(SIRET_B),
+        ],
+        duplicates: 0,
+        truncated: false,
+      });
+
+      const result = await service.syncDiscovery();
+
+      expect(result.expectedTotal).toBeNull();
+      expect(result.mismatch).toBe(false);
+      expect(mismatchWarnings(warn)).toHaveLength(0);
+    });
+
+    it('keeps truncated=true and warns when the page cap cuts the read short', async () => {
+      const { service } = serviceWithSearch({
+        etablissements: [inScopeEtablissement(SIRET_A)],
+        total: 50,
+        duplicates: 4,
+        truncated: true,
+      });
+
+      const result = await service.syncDiscovery();
+
+      expect(result.truncated).toBe(true);
+      expect(result.mismatch).toBe(true);
+      expect(result.duplicates).toBe(4);
+      expect(mismatchWarnings(warn)).toHaveLength(1);
+    });
+
+    it('dedups overlapping pages end-to-end through the real INSEE client', async () => {
+      const upsert = vi.fn().mockResolvedValue({ id: 'company-1' });
+      const { service } = createService({ company: { upsert } });
+      const fetchSpy = vi
+        .spyOn(global, 'fetch')
+        .mockImplementation(async (input) => {
+          const debut = new URL(String(input)).searchParams.get('debut');
+          const etablissements =
+            debut === '0'
+              ? [inScopeEtablissement(SIRET_A), inScopeEtablissement(SIRET_B)]
+              : [inScopeEtablissement(SIRET_B), inScopeEtablissement(SIRET_C)];
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ header: { total: 3 }, etablissements }),
+          } as Response;
+        });
+
+      await expect(service.syncDiscovery()).resolves.toEqual({
+        scanned: 3,
+        upserted: 3,
+        skipped: 0,
+        skippedOutOfScope: 0,
+        truncated: false,
+        expectedTotal: 3,
+        duplicates: 1,
+        mismatch: false,
+      });
+      expect(upsert).toHaveBeenCalledTimes(3);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      for (const call of fetchSpy.mock.calls) {
+        expect(new URL(String(call[0])).searchParams.get('tri')).toBe('siret');
+      }
+
+      fetchSpy.mockRestore();
     });
   });
 
@@ -584,6 +793,9 @@ describe('syncDiscovery', () => {
       skipped: 0,
       skippedOutOfScope: 0,
       truncated: false,
+      expectedTotal: 1,
+      duplicates: 0,
+      mismatch: false,
     });
     expect(fetchSpy).toHaveBeenCalledTimes(2);
     expect(delay).toHaveBeenCalledOnce();

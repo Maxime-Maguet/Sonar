@@ -203,6 +203,7 @@ describe('InseeClient', () => {
     await expect(client.searchEtablissements(q)).resolves.toEqual({
       etablissements: [{ siret: '12345678900012' }],
       total: 1,
+      duplicates: 0,
       truncated: false,
     });
 
@@ -212,6 +213,7 @@ describe('InseeClient', () => {
     expect(url.searchParams.get('q')).not.toContain(
       'activitePrincipaleNAF25Etablissement',
     );
+    expect(url.searchParams.get('tri')).toBe('siret');
     expect(fetchSpy.mock.calls[0]?.[1]).toEqual(
       expect.objectContaining({
         signal: expect.any(AbortSignal),
@@ -252,6 +254,7 @@ describe('InseeClient', () => {
         { siret: '22222222222222' },
       ],
       total: 2,
+      duplicates: 0,
       truncated: false,
     });
     expect(fetchSpy).toHaveBeenCalledTimes(2);
@@ -267,23 +270,142 @@ describe('InseeClient', () => {
     await expect(client.searchEtablissements('q')).resolves.toEqual({
       etablissements: [],
       total: 10,
+      duplicates: 0,
       truncated: true,
     });
     expect(fetchSpy).toHaveBeenCalledOnce();
   });
 
   it(`caps pagination at ${SIRENE_SEARCH_MAX_PAGES} pages`, async () => {
-    fetchSpy.mockImplementation(async () =>
-      jsonResponse({
+    let call = 0;
+    fetchSpy.mockImplementation(async () => {
+      call += 1;
+      return jsonResponse({
         header: { total: 10_000 },
-        etablissements: [{ siret: '1' }],
-      }),
-    );
+        etablissements: [{ siret: String(call) }],
+      });
+    });
 
     const result = await client.searchEtablissements('q', 1);
     expect(result.etablissements).toHaveLength(SIRENE_SEARCH_MAX_PAGES);
     expect(result.total).toBe(10_000);
     expect(result.truncated).toBe(true);
     expect(fetchSpy).toHaveBeenCalledTimes(SIRENE_SEARCH_MAX_PAGES);
+  });
+
+  describe('search pagination stability', () => {
+    const A = '11111111111111';
+    const B = '22222222222222';
+    const C = '33333333333333';
+    const D = '44444444444444';
+
+    function mockPages(total: number, pages: unknown[][]) {
+      for (const etablissements of pages) {
+        fetchSpy.mockResolvedValueOnce(
+          jsonResponse({ header: { total }, etablissements }),
+        );
+      }
+    }
+
+    function sirets(rows: unknown[]): unknown[] {
+      return rows.map((row) => (row as { siret?: string }).siret);
+    }
+
+    it('drops rows repeated on an overlapping page and counts them', async () => {
+      mockPages(3, [
+        [{ siret: A }, { siret: B }],
+        [{ siret: B }, { siret: C }],
+      ]);
+
+      const result = await client.searchEtablissements('q', 2);
+
+      expect(sirets(result.etablissements)).toEqual([A, B, C]);
+      expect(result.duplicates).toBe(1);
+      expect(result.total).toBe(3);
+      expect(result.truncated).toBe(false);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps paginating until distinct rows reach the total, not raw rows', async () => {
+      mockPages(4, [
+        [{ siret: A }, { siret: B }],
+        [{ siret: B }, { siret: C }],
+        [{ siret: C }, { siret: D }],
+      ]);
+
+      const result = await client.searchEtablissements('q', 2);
+
+      expect(sirets(result.etablissements)).toEqual([A, B, C, D]);
+      expect(result.duplicates).toBe(2);
+      expect(result.truncated).toBe(false);
+      expect(fetchSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it('returns no duplicate when page order changes between calls', async () => {
+      mockPages(3, [
+        [{ siret: A }, { siret: B }],
+        [{ siret: B }, { siret: A }],
+        [{ siret: C }, { siret: A }],
+      ]);
+
+      const result = await client.searchEtablissements('q', 2);
+      const returned = sirets(result.etablissements);
+
+      expect(new Set(returned).size).toBe(returned.length);
+      expect([...returned].sort()).toEqual([A, B, C]);
+      expect(result.duplicates).toBe(3);
+      expect(result.truncated).toBe(false);
+    });
+
+    it('flags truncated when overlaps keep distinct rows below the total', async () => {
+      mockPages(5, [
+        [{ siret: A }, { siret: B }],
+        [{ siret: A }, { siret: B }],
+        [],
+      ]);
+
+      const result = await client.searchEtablissements('q', 2);
+
+      expect(sirets(result.etablissements)).toEqual([A, B]);
+      expect(result.duplicates).toBe(2);
+      expect(result.truncated).toBe(true);
+    });
+
+    it('keeps rows without a siret and never counts them as duplicates', async () => {
+      mockPages(4, [
+        [{ foo: 1 }, { foo: 1 }, { siret: A }],
+        [{ siret: A }, { siret: null }],
+      ]);
+
+      const result = await client.searchEtablissements('q', 3);
+
+      expect(result.etablissements).toEqual([
+        { foo: 1 },
+        { foo: 1 },
+        { siret: A },
+        { siret: null },
+      ]);
+      expect(result.duplicates).toBe(1);
+      expect(result.truncated).toBe(false);
+    });
+
+    it('sends tri=siret with q, nombre and debut on every page', async () => {
+      mockPages(3, [
+        [{ siret: A }],
+        [{ siret: B }],
+        [{ siret: C }],
+      ]);
+
+      await client.searchEtablissements('q-test', 1);
+
+      expect(fetchSpy).toHaveBeenCalledTimes(3);
+      for (let index = 0; index < 3; index += 1) {
+        const url = new URL(String(fetchSpy.mock.calls[index]?.[0]));
+        expect(url.searchParams.get('tri')).toBe('siret');
+        expect(url.searchParams.get('q')).toBe('q-test');
+        expect(url.searchParams.get('nombre')).toBe('1');
+        expect(url.searchParams.get('debut')).toBe(String(index));
+      }
+    });
   });
 });

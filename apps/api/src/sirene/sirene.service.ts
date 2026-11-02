@@ -27,6 +27,9 @@ export type SireneSyncResult = {
   skipped: number; // Nombre d'établissements ignorés
   skippedOutOfScope: number; // Nombre d'établissements ignorés hors scope
   truncated: boolean; // Indique si la recherche a été tronquée
+  expectedTotal: number | null; // Total annoncé par l'INSEE (null si absent)
+  duplicates: number; // Établissements lus plusieurs fois, traités une seule fois
+  mismatch: boolean; // true si le nombre d'établissements distincts lus ≠ expectedTotal
 };
 
 // Fonction pour enregistrer une company dans la base de données
@@ -90,6 +93,9 @@ export class SireneService {
       skipped: 0,
       skippedOutOfScope: 0,
       truncated: false,
+      expectedTotal: null,
+      duplicates: 0,
+      mismatch: false,
     };
 
     try {
@@ -97,6 +103,16 @@ export class SireneService {
         buildDiscoverySearchQuery(),
       );
       result.truncated = search.truncated;
+      result.expectedTotal = search.total ?? null;
+      result.duplicates = search.duplicates;
+      result.mismatch =
+        search.total !== undefined &&
+        search.etablissements.length !== search.total;
+      if (result.mismatch) {
+        this.logger.warn(
+          `sync mismatch: ${search.etablissements.length} établissements distincts lus pour ${search.total} annoncés (doublons=${search.duplicates}, truncated=${search.truncated})`,
+        );
+      }
       for (const row of search.etablissements) {
         result.scanned += 1;
         await this.syncOneRow(row, result);

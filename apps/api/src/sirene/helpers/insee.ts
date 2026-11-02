@@ -8,7 +8,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { asObject } from '../../common/json.js';
+import { asObject, asText } from '../../common/json.js';
 
 export const SIRENE_BASE_URL = 'https://api.insee.fr/api-sirene/3.11';
 export const SIRENE_SEARCH_MAX_PAGES = 5;
@@ -20,6 +20,8 @@ export type SireneDelayFn = (ms: number) => Promise<void>;
 export type SireneSearchResult = {
   etablissements: unknown[];
   total?: number;
+  /** Lignes distinctes (par siret) écartées car déjà lues sur une page précédente. */
+  duplicates: number;
   truncated: boolean;
 };
 
@@ -62,6 +64,8 @@ export class InseeClient {
     nombre: number = SIRENE_SEARCH_PAGE_SIZE,
   ): Promise<SireneSearchResult> {
     const collected: unknown[] = [];
+    const seenSirets = new Set<string>();
+    let duplicates = 0;
     let debut = 0;
     let total: number | undefined;
 
@@ -69,6 +73,11 @@ export class InseeClient {
       const url = new URL(`${SIRENE_BASE_URL}/siret`);
       url.searchParams.set('q', q);
       url.searchParams.set('nombre', String(nombre));
+      // Tri explicite par siret : sans tri, l'INSEE ne garantit pas un ordre
+      // stable entre deux appels, donc debut/nombre peut sauter ou répéter des
+      // lignes. Vérifié sur l'API réelle : ordre croissant identique d'un appel
+      // à l'autre. On préfère tri à curseur car cela garde la boucle debut/nombre.
+      url.searchParams.set('tri', 'siret');
       url.searchParams.set('debut', String(debut));
 
       const body = asObject(await this.getJson(url.toString()));
@@ -82,7 +91,17 @@ export class InseeClient {
       if (rows.length === 0) {
         break;
       }
-      collected.push(...rows);
+      for (const row of rows) {
+        const siret = asText(asObject(row)?.siret);
+        if (siret !== null) {
+          if (seenSirets.has(siret)) {
+            duplicates += 1;
+            continue;
+          }
+          seenSirets.add(siret);
+        }
+        collected.push(row);
+      }
       if (total !== undefined && collected.length >= total) {
         break;
       }
@@ -91,6 +110,7 @@ export class InseeClient {
     return {
       etablissements: collected,
       total,
+      duplicates,
       truncated: typeof total === 'number' && collected.length < total,
     };
   }
