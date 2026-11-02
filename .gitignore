@@ -68,6 +68,9 @@ desktop.ini
 # Local curl / session jars
 cookies.txt
 
+# Marqueur temporaire du hook Stop (propose-commit), créé dans le dossier courant
+**/.claude/.pending_commit
+
 # Misc
 .cache/
 .parcel-cache/
