@@ -2,6 +2,7 @@ import { BadGatewayException } from '@nestjs/common';
 
 import { asObject, asText, slugify } from '../../common/json.js';
 import type { Json as JsonType } from '../../common/json.js';
+import { getCommuneName } from './discovery.js';
 
 /** Fiche affichée / enregistrée, pas le JSON INSEE. */
 export type CompanyFiche = {
@@ -93,6 +94,12 @@ export function normalizeEtablissement(raw: unknown): CompanyFiche {
     ? fallbackName
     : (legalName(unite, periode) ?? fallbackName);
 
+  const communeInseeCode = asText(adresse?.codeCommuneEtablissement);
+  // Commune de la découverte : nom canonique ; sinon libellé INSEE tel quel.
+  const city =
+    getCommuneName(communeInseeCode) ??
+    asText(adresse?.libelleCommuneEtablissement);
+
   return {
     siren,
     siret,
@@ -100,7 +107,7 @@ export function normalizeEtablissement(raw: unknown): CompanyFiche {
     slug: `${slugify(name)}-${siren}`,
     address: hideIdentity ? null : buildStreet(adresse),
     postalCode: asText(adresse?.codePostalEtablissement),
-    city: asText(adresse?.libelleCommuneEtablissement),
+    city,
     activityCode: asText(periode?.activitePrincipaleEtablissement),
     activityNomenclature: asText(
       periode?.nomenclatureActivitePrincipaleEtablissement,
@@ -108,7 +115,7 @@ export function normalizeEtablissement(raw: unknown): CompanyFiche {
     activityCodeNaf25:
       asText(periode?.activitePrincipaleNAF25Etablissement) ??
       asText(unite?.activitePrincipaleNAF25UniteLegale),
-    communeInseeCode: asText(adresse?.codeCommuneEtablissement),
+    communeInseeCode,
     diffusionStatus,
     isHeadquarter:
       etab.etablissementSiege === true || etab.etablissementSiege === 'true',

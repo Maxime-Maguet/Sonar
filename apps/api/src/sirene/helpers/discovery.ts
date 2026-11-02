@@ -14,6 +14,34 @@ export const DISCOVERY_COMMUNE_CODES = [
   '31022', // Aucamville
 ] as const;
 
+/**
+ * Nom canonique de chaque commune de la découverte (source unique). L'INSEE
+ * renvoie des libellés variables (« RAMONVILLE ST AGNE » / « RAMONVILLE-SAINT-AGNE »)
+ * pour un même code ; l'import enregistre ce nom dans `city`.
+ */
+export const COMMUNE_NAMES: Readonly<Record<string, string>> = {
+  '31555': 'Toulouse',
+  '31069': 'Blagnac',
+  '31149': 'Colomiers',
+  '31557': 'Tournefeuille',
+  '31157': 'Cugnaux',
+  '31044': 'Balma',
+  '31561': "L'Union",
+  '31506': 'Saint-Orens-de-Gameville',
+  '31446': 'Ramonville-Saint-Agne',
+  '31056': 'Beauzelle',
+  '31022': 'Aucamville',
+};
+
+/** Nom canonique d'une commune de la découverte, `undefined` hors découverte. */
+export function getCommuneName(
+  code: string | null | undefined,
+): string | undefined {
+  return typeof code === 'string' && Object.hasOwn(COMMUNE_NAMES, code)
+    ? COMMUNE_NAMES[code]
+    : undefined;
+}
+
 export const DISCOVERY_NAF_REV2_CODES = [
   '62.01Z',
   '62.02A',

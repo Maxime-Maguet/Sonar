@@ -1,9 +1,11 @@
 import {
+  COMMUNE_NAMES,
   DISCOVERY_COMMUNE_CODES,
   DISCOVERY_NAF_25,
   DISCOVERY_NAF_25_CODES,
   DISCOVERY_NAF_REV2_CODES,
   buildDiscoverySearchQuery,
+  getCommuneName,
   isAllowedCommune,
   isAllowedNaf,
   isAllowedNaf25,
@@ -24,6 +26,24 @@ describe('discovery', () => {
     expect(isAllowedCommune('31056')).toBe(true);
     expect(isAllowedCommune('31022')).toBe(true);
     expect(DISCOVERY_COMMUNE_CODES).toHaveLength(11);
+  });
+
+  it('has a canonical name for every discovery commune, and only those', () => {
+    for (const code of DISCOVERY_COMMUNE_CODES) {
+      expect(getCommuneName(code)).toBeTruthy();
+    }
+    expect(Object.keys(COMMUNE_NAMES).sort()).toEqual(
+      [...DISCOVERY_COMMUNE_CODES].sort(),
+    );
+    expect(getCommuneName('31446')).toBe('Ramonville-Saint-Agne');
+    expect(getCommuneName('31561')).toBe("L'Union");
+  });
+
+  it('has no canonical name outside the net or for prototype keys', () => {
+    expect(getCommuneName('75056')).toBeUndefined();
+    expect(getCommuneName('toString')).toBeUndefined();
+    expect(getCommuneName(null)).toBeUndefined();
+    expect(getCommuneName(undefined)).toBeUndefined();
   });
 
   it('rejects communes outside the net', () => {

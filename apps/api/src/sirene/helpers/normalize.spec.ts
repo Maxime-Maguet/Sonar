@@ -33,7 +33,40 @@ function baseEtablissement(
   };
 }
 
+function withCommune(code: string, label: string): Record<string, unknown> {
+  const base = baseEtablissement();
+  const etab = base.etablissement as Record<string, unknown>;
+  return {
+    etablissement: {
+      ...etab,
+      adresseEtablissement: {
+        ...(etab.adresseEtablissement as Record<string, unknown>),
+        codeCommuneEtablissement: code,
+        libelleCommuneEtablissement: label,
+      },
+    },
+  };
+}
+
 describe('normalizeEtablissement', () => {
+  describe('city canonicalisation', () => {
+    it('gives the same city for both INSEE spellings of Ramonville', () => {
+      const short = normalizeEtablissement(
+        withCommune('31446', 'RAMONVILLE ST AGNE'),
+      );
+      const long = normalizeEtablissement(
+        withCommune('31446', 'RAMONVILLE-SAINT-AGNE'),
+      );
+      expect(short.city).toBe('Ramonville-Saint-Agne');
+      expect(long.city).toBe(short.city);
+    });
+
+    it('keeps the INSEE label outside the discovery', () => {
+      const result = normalizeEtablissement(withCommune('75056', 'PARIS'));
+      expect(result.city).toBe('PARIS');
+    });
+  });
+
   it('maps an open etablissement to a Sonar fiche', () => {
     const result = normalizeEtablissement(baseEtablissement());
 
@@ -44,7 +77,7 @@ describe('normalizeEtablissement', () => {
       slug: 'sarl-dupont-123456789',
       address: '12 RUE DE LA PAIX',
       postalCode: '31000',
-      city: 'TOULOUSE',
+      city: 'Toulouse',
       activityCode: '62.01Z',
       activityNomenclature: 'NAFRev2',
       activityCodeNaf25: '62.10A',
@@ -68,7 +101,7 @@ describe('normalizeEtablissement', () => {
     expect(result.slug).toBe('etablissement-12345678900012-123456789');
     expect(result.address).toBeNull();
     expect(result.postalCode).toBe('31000');
-    expect(result.city).toBe('TOULOUSE');
+    expect(result.city).toBe('Toulouse');
     expect(result.activityCode).toBe('62.01Z');
     expect(result.diffusionStatus).toBe('P');
   });
