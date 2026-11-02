@@ -84,7 +84,7 @@ DTO login/register, throttle login, cookies et CORS **sont ici**, pas dans une p
 - [x] Throttle login
 - [x] CORS : origine = `WEB_ORIGIN` uniquement, **pas** de fallback `localhost` si `NODE_ENV=production`
 - [ ] Isolation CRM par `userId` (quand le CRM existe). Unicité `(userId, companyId)` déjà en base ; le scoping des requêtes reste au CRUD (en attente)
-- [x] Couper `POST /sirene/:siret/create` public (session + rôle `ADMIN` en base, relu à chaque appel ; `GET /sirene/:siret` reste public)
+- [x] Couper `POST /sirene/:siret/create` public (session + rôle `ADMIN` en base, relu à chaque appel ; `GET /sirene/:siret` exige une session, sans rôle admin)
 
 ### C — Contrats HTTP
 
@@ -122,7 +122,7 @@ Dès qu’un endpoint est créé (ci-dessous) : DTO entrée, DTO **sortie** (jam
 Socle UI
 
 - [x] Client HTTP unique, `credentials: 'include'`, **aucun** secret INSEE/FT en `NEXT_PUBLIC_*` (pages `/login` `/register` ; 401 géré par la page, pas le client)
-- [ ] `error.tsx` / `not-found.tsx`
+- [x] `error.tsx` / `not-found.tsx` (+ `global-error.tsx`, phrases d'échec connexion / inscription)
 - [ ] `loading.tsx` / skeletons sur les listes (squelette **Pistes** déjà en place)
 - [ ] Header / Hero / Footer produit (badge Toulouse, nav : Explorer, Événements, Radar, Pistes, CRM) — en-tête **minimal** Accueil / Pistes / Connexion + footer Etalab sur `/pistes` déjà là
 - [ ] Pages légales : mentions, confidentialité (compte + CRM + `"P"` + cookie de session)
