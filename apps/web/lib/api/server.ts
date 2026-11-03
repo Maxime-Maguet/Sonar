@@ -1,14 +1,12 @@
 import type { CompaniesPage, ListCompaniesParams } from "@sonar/api-contract";
+import { resolveServerBaseUrl } from "./base-url";
 import { ApiError, NETWORK_ERROR_CODE } from "./errors";
 
 function getBaseUrl(): string {
-  const base = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (!base) {
-    throw new Error(
-      "NEXT_PUBLIC_API_URL is not defined (ex: http://localhost:3001)",
-    );
-  }
-  return base.replace(/\/+$/, "");
+  return resolveServerBaseUrl({
+    directUrl: process.env.API_DIRECT_URL,
+    publicUrl: process.env.NEXT_PUBLIC_API_URL,
+  });
 }
 
 /** Annuaire public : sans cookie ni credentials, jamais mis en cache. */

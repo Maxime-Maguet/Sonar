@@ -115,7 +115,8 @@ Copier `.env.example` → `.env` à la **racine** (jamais commit).
 | `NODE_ENV` | **Obligatoire** : `development`, `test` ou `production` (sensible à la casse). Sans lui l'API refuse de démarrer ; en `production` : cookie `secure` + garde `WEB_ORIGIN` |
 | `WEB_ORIGIN` | Origines web autorisées (CORS + CSRF), séparées par des virgules (`http://localhost:3000,http://192.168.1.20:3000`). En production : pas de localhost ni d'IP privée |
 | `TRUST_PROXY_HOPS` | Optionnel : nombre de proxies devant l'API (entier ≥ 0). Absent = aucun proxy ; autre valeur = l'API refuse de démarrer. Les limites par IP comptent alors le visiteur, pas le relais |
-| `NEXT_PUBLIC_API_URL` | URL de l’API vue par le navigateur (`http://localhost:3001`). Seule variable publique du web ; jamais de `FT_*` / `INSEE_*` ici |
+| `NEXT_PUBLIC_API_URL` | **À mettre dans `apps/web/.env.local`** (Next ne lit pas le `.env` racine). Base de l’API vue par le navigateur : URL absolue en local (`http://localhost:3001`), chemin relatif `/api` en production (même origine que le site). Seule variable publique du web ; jamais de `FT_*` / `INSEE_*` ici |
+| `API_DIRECT_URL` | **À mettre dans `apps/web/.env.local`.** Optionnel, serveur uniquement : adresse réelle de l’API. Si définie, Next relaie `/api/*` vers elle et l’annuaire rendu côté serveur l’utilise. Vide en local |
 | `API_PORT` | Nest (`3001`) |
 
 ---

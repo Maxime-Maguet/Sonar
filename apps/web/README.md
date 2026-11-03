@@ -24,7 +24,7 @@ Depuis la racine du repo (`npm run dev`), ou :
 npm run dev -w web
 ```
 
-http://localhost:3000 — l’API doit tourner sur le port indiqué par `NEXT_PUBLIC_API_URL` (ex. `http://localhost:3001`). Variable dans `.env.local` (copie depuis `.env.example` racine). **Aucun** `FT_*` / `INSEE_*` ici.
+http://localhost:3000 — l’API doit tourner sur le port indiqué par `NEXT_PUBLIC_API_URL` (ex. `http://localhost:3001`). Variables dans `apps/web/.env.local` (copie depuis `.env.example` racine) : Next ne lit pas le `.env` racine, donc `NEXT_PUBLIC_API_URL` et `API_DIRECT_URL` se règlent ici ; redémarrer `npm run dev` après modification. Pour tester le relais en local : `NEXT_PUBLIC_API_URL="/api"` et `API_DIRECT_URL="http://localhost:3001"` (avec `WEB_ORIGIN="http://localhost:3000"` dans le `.env` racine). `NEXT_PUBLIC_API_URL` peut être un chemin relatif (`/api`) : avec `API_DIRECT_URL` (serveur uniquement, vide en local), Next relaie `/api/*` vers l’API (une seule origine, cookie first-party). **Aucun** `FT_*` / `INSEE_*` ici.
 
 ## Scripts
 

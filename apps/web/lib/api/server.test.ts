@@ -22,6 +22,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 describe("listCompanies", () => {
@@ -34,6 +35,18 @@ describe("listCompanies", () => {
     expect(init?.credentials).toBeUndefined();
     expect(init?.headers).toBeUndefined();
     expect(init?.cache).toBe("no-store");
+  });
+
+  it("prefers API_DIRECT_URL over NEXT_PUBLIC_API_URL, still without cookie or credentials", async () => {
+    vi.stubEnv("API_DIRECT_URL", "http://direct.test:3001/");
+    process.env.NEXT_PUBLIC_API_URL = "/api";
+    const fetchMock = stubFetch(async () => jsonResponse(page));
+    await expect(listCompanies({})).resolves.toEqual(page);
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe("http://direct.test:3001/companies");
+    expect(init?.credentials).toBeUndefined();
+    expect(init?.headers).toBeUndefined();
   });
 
   it("builds the query string from params and encodes values", async () => {

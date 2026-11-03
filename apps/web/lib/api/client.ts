@@ -4,17 +4,12 @@ import type {
   LeadsPage,
   ListLeadsParams,
 } from "@sonar/api-contract";
+import { resolveBrowserBaseUrl } from "./base-url";
 import { ApiError, NETWORK_ERROR_CODE } from "./errors";
 
 function getBaseUrl(): string {
   // Accès littéral requis : Next n'inline NEXT_PUBLIC_* que sous cette forme.
-  const base = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (!base) {
-    throw new Error(
-      "NEXT_PUBLIC_API_URL is not defined (ex: http://localhost:3001)",
-    );
-  }
-  return base.replace(/\/+$/, "");
+  return resolveBrowserBaseUrl(process.env.NEXT_PUBLIC_API_URL);
 }
 
 /** Extrait uniquement un `code` string du body d'erreur ; jamais le body brut. */

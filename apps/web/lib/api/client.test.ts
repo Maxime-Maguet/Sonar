@@ -70,6 +70,15 @@ describe("register / login", () => {
     await login(creds);
     expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/auth/login`);
   });
+
+  it("supports a relative base /api (same-origin proxy)", async () => {
+    vi.stubEnv("NEXT_PUBLIC_API_URL", "/api/");
+    fetchMock.mockResolvedValue(jsonResponse({ id: "1", email: "x" }));
+    await login(creds);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("/api/auth/login");
+    expect(init.credentials).toBe("include");
+  });
 });
 
 describe("listLeads", () => {
