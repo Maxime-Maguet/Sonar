@@ -3,18 +3,18 @@ import {
   INDICATIVE_NOTICE,
   INSEE_SOURCE_LABEL,
   INSEE_SOURCE_URL,
-  UNOFFICIAL_NOTICE,
 } from "@/lib/pistes/etalab";
 
-export type FooterSegment = { text: string; href?: string };
-export type FooterLine = FooterSegment[];
+import type { FooterLine } from "@/lib/footer/types";
+
+export type { FooterLine, FooterSegment } from "@/lib/footer/types";
 
 export const ETALAB_LICENCE_URL =
   "https://www.etalab.gouv.fr/licence-ouverte-open-licence/";
 export const ETALAB_LICENCE_LABEL = "Licence ouverte (Etalab)";
 export const SYNC_UNAVAILABLE = " — date de synchronisation indisponible";
 
-/** Pied de page de /explorer : Sirene, licence, avertissements, synchronisation. */
+/** Bloc de sources de /explorer : Sirene, licence, avertissement, synchronisation. */
 export function explorerFooterLines(syncedAt: string | null): FooterLine[] {
   return [
     [
@@ -33,6 +33,5 @@ export function explorerFooterLines(syncedAt: string | null): FooterLine[] {
       { text: "." },
     ],
     [{ text: INDICATIVE_NOTICE }],
-    [{ text: UNOFFICIAL_NOTICE }],
   ];
 }

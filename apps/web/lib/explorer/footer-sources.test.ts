@@ -25,9 +25,15 @@ describe("explorerFooterLines", () => {
     }
   });
 
-  it("states that Sonar is not an official service", () => {
-    expect(flatten(SYNCED_AT)).toContain("Sonar n'est pas un service officiel");
-    expect(flatten(null)).toContain("Sonar n'est pas un service officiel");
+  it("leaves the common « not an official service » line to the shared footer", () => {
+    expect(flatten(SYNCED_AT)).not.toContain("service officiel");
+    expect(flatten(SYNCED_AT)).toContain("Ces informations sont indicatives.");
+  });
+
+  it("names INSEE / Sirene and the Etalab licence in the text", () => {
+    const text = flatten(SYNCED_AT);
+    expect(text).toContain("Données INSEE / Sirene");
+    expect(text).toContain("Licence : Licence ouverte (Etalab).");
   });
 
   it("falls back to an explicit message when syncedAt is null", () => {

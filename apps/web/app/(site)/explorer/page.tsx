@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { CompaniesPage } from "@sonar/api-contract";
-import { SiteFooter } from "@/components/site-footer";
+import { FooterSources } from "@/components/footer-sources";
 import { listCompanies } from "@/lib/api/server";
 import { explorerFooterLines } from "@/lib/explorer/footer-sources";
 import {
@@ -186,7 +186,7 @@ export default async function ExplorerPage({
           </div>
         ) : null}
       </main>
-      <SiteFooter lines={explorerFooterLines(data?.syncedAt ?? null)} />
+      <FooterSources lines={explorerFooterLines(data?.syncedAt ?? null)} />
     </>
   );
 }

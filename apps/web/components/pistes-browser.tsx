@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { LeadsPage } from "@sonar/api-contract";
 import { Button } from "@/components/ui/button";
-import { SiteFooter } from "@/components/site-footer";
+import { FooterSources } from "@/components/footer-sources";
+import { pistesFooterLines } from "@/lib/footer/footer-lines";
 import { listLeads } from "@/lib/api/client";
 import { ApiError } from "@/lib/api/errors";
 import { metierOptions } from "@/lib/pistes/metiers";
@@ -160,7 +161,7 @@ function PistesFrame({
       <main id="contenu" className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
         {children}
       </main>
-      <SiteFooter fetchedAt={fetchedAt} />
+      <FooterSources lines={pistesFooterLines(fetchedAt)} />
     </>
   );
 }

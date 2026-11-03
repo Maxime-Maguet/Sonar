@@ -12,9 +12,9 @@ Front Next.js 16 (App Router) de Sonar. L’API Nest est dans `apps/api`. Vue d�
 | `/pistes` | Pistes Toulouse (La Bonne Boîte), métier + page dans l’URL ; 401 → connexion |
 | pages d’erreur | adresse inconnue (`not-found`) et plantage (`error`, `global-error`), sans menu |
 
-Une piste n’est **pas** une offre. Le potentiel 0–100 est attribué à La Bonne Boîte. Pied de page Etalab propre à chaque page (source, date, infos indicatives, Sonar n’est pas un service officiel).
+Une piste n’est **pas** une offre. Le potentiel 0–100 est attribué à La Bonne Boîte. Pied de page commun du layout `(site)` (Sonar n’est pas un service officiel) avec un bloc de sources propre à chaque page (source, date, infos indicatives), fourni via `<FooterSources>`.
 
-**Navigation (en cours).** L’accueil, `/explorer` et `/pistes` vivent dans le groupe de routes `(site)`, dont le layout dessine le lien d’évitement et le menu (logique pure dans `lib/navigation`). `/login`, `/register` et les pages d’erreur restent sans menu. Reste (issue #22) : menu téléphone, session visible, pied de page commun, nouvel accueil (tickets #25 à #28).
+**Navigation (en cours).** L’accueil, `/explorer` et `/pistes` vivent dans le groupe de routes `(site)`, dont le layout dessine le lien d’évitement et le menu (logique pure dans `lib/navigation`). `/login`, `/register` et les pages d’erreur restent sans menu. Sous 768 px le menu se replie derrière un bouton « Menu ». Le pied de page est commun (`lib/footer`) ; les liens légaux n’apparaissent que quand leur page existe. Reste (issue #22) : session visible, nouvel accueil (tickets #27, #28).
 
 ## Lancer
 
