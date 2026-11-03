@@ -5,6 +5,7 @@ import { AppModule } from './app.module.js';
 import { PrismaClientExceptionFilter } from './common/filters/prisma-exception.filter.js';
 import cookieParser from 'cookie-parser';
 import { applyCors } from './config/cors.options.js';
+import { parseTrustProxyHops, resolveTrustProxy } from './config/trust-proxy.js';
 import type { WebOrigins } from './config/web-origins.js';
 import { WEB_ORIGINS } from './config/web-origins.module.js';
 import { ConfigService } from '@nestjs/config';
@@ -12,6 +13,17 @@ import { ConfigService } from '@nestjs/config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
+  // Nombre de proxies devant l'API : à poser avant que les limites par IP
+  // ne lisent l'adresse du visiteur. Absent = aucun proxy.
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .set(
+      'trust proxy',
+      resolveTrustProxy(
+        parseTrustProxyHops(config.get<string>('TRUST_PROXY_HOPS')),
+      ),
+    );
   // Filtre les erreurs Prisma pour renvoyer des messages utilisateurs clairs
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));

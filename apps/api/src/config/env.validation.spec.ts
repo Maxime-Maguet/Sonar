@@ -210,6 +210,34 @@ describe('validate', () => {
     expect(message).not.toContain('secret-pool');
   });
 
+  it('leaves TRUST_PROXY_HOPS undefined when absent or empty', () => {
+    expect(validate(validEnv()).TRUST_PROXY_HOPS).toBeUndefined();
+    expect(
+      validate(validEnv({ TRUST_PROXY_HOPS: '' })).TRUST_PROXY_HOPS,
+    ).toBeUndefined();
+  });
+
+  it.each(['0', '1', '2'])('accepts TRUST_PROXY_HOPS %j', (value) => {
+    expect(validate(validEnv({ TRUST_PROXY_HOPS: value })).TRUST_PROXY_HOPS).toBe(
+      value,
+    );
+  });
+
+  it.each(['-1', '1.5', 'abc', '1e2'])(
+    'rejects TRUST_PROXY_HOPS %j by name, without its value',
+    (value) => {
+      let message = '';
+      try {
+        validate(validEnv({ TRUST_PROXY_HOPS: value }));
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      expect(message).toBe(
+        "Variables d'environnement invalides ou manquantes : TRUST_PROXY_HOPS",
+      );
+    },
+  );
+
   it('defaults API_PORT to 3001 when it is absent', () => {
     // validEnv() n'envoie pas API_PORT. Le défaut est celui de main.ts.
     expect(validate(validEnv()).API_PORT).toBe(3001);

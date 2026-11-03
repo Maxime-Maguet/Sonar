@@ -114,6 +114,7 @@ Copier `.env.example` → `.env` à la **racine** (jamais commit).
 | `INSEE_API_KEY` | Header Sirene `X-INSEE-Api-Key-Integration` |
 | `NODE_ENV` | **Obligatoire** : `development`, `test` ou `production` (sensible à la casse). Sans lui l'API refuse de démarrer ; en `production` : cookie `secure` + garde `WEB_ORIGIN` |
 | `WEB_ORIGIN` | Origines web autorisées (CORS + CSRF), séparées par des virgules (`http://localhost:3000,http://192.168.1.20:3000`). En production : pas de localhost ni d'IP privée |
+| `TRUST_PROXY_HOPS` | Optionnel : nombre de proxies devant l'API (entier ≥ 0). Absent = aucun proxy ; autre valeur = l'API refuse de démarrer. Les limites par IP comptent alors le visiteur, pas le relais |
 | `NEXT_PUBLIC_API_URL` | URL de l’API vue par le navigateur (`http://localhost:3001`). Seule variable publique du web ; jamais de `FT_*` / `INSEE_*` ici |
 | `API_PORT` | Nest (`3001`) |
 

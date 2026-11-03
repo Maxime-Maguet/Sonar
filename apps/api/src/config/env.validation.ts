@@ -18,6 +18,7 @@ import {
   ValidatorConstraintInterface,
   validateSync,
 } from 'class-validator';
+import { parseTrustProxyHops } from './trust-proxy.js';
 import { resolveWebOrigins } from './web-origins.js';
 
 function trimString({ value }: { value: unknown }): unknown {
@@ -41,6 +42,24 @@ class WebOriginsConstraint implements ValidatorConstraintInterface {
 
   defaultMessage(): string {
     return 'WEB_ORIGIN invalide';
+  }
+}
+
+// Entier >= 0 ou absent. Retourne false sans détailler la valeur.
+@ValidatorConstraint({ name: 'trustProxyHops', async: false })
+class TrustProxyHopsConstraint implements ValidatorConstraintInterface {
+  validate(value: unknown): boolean {
+    if (typeof value !== 'string') return false;
+    try {
+      parseTrustProxyHops(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  defaultMessage(): string {
+    return 'TRUST_PROXY_HOPS invalide';
   }
 }
 
@@ -70,6 +89,15 @@ class EnvironmentVariables {
   @Transform(trimString)
   @Validate(WebOriginsConstraint)
   WEB_ORIGIN: string;
+
+  // Optionnelle : nombre de proxies devant l'API. Absente ou vide = aucun.
+  @Transform(({ value }) => {
+    const trimmed = trimString({ value });
+    return trimmed === '' ? undefined : trimmed;
+  })
+  @ValidateIf((env: EnvironmentVariables) => env.TRUST_PROXY_HOPS !== undefined)
+  @Validate(TrustProxyHopsConstraint)
+  TRUST_PROXY_HOPS?: string;
 
   // Obligatoire : sans lui, le garde WEB_ORIGIN (production) et le flag
   // `secure` du cookie seraient silencieusement inactifs.
