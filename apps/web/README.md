@@ -6,7 +6,7 @@ Front Next.js 16 (App Router) de Sonar. L’API Nest est dans `apps/api`. Vue d�
 
 | Chemin | Rôle |
 |---|---|
-| `/` | Accueil : aujourd’hui une page de démonstration des couleurs, sans lien ; remplacée par le ticket #28 |
+| `/` | Accueil : présentation, trois compteurs (entreprises en direct depuis `GET /companies` avec source INSEE / Sirene et date ; technologies et événements « — », bientôt) et actions (« Explorer l’annuaire », puis « Se connecter » ou « Voir les pistes » selon la session) |
 | `/explorer` | Annuaire public des entreprises (Sirene), filtres ville et activité dans l’URL, pagination ; rendu serveur |
 | `/login`, `/register` | Compte ; cookie de session posé par l’API (`credentials: 'include'`) |
 | `/pistes` | Pistes Toulouse (La Bonne Boîte), métier + page dans l’URL ; 401 → connexion |
@@ -14,7 +14,7 @@ Front Next.js 16 (App Router) de Sonar. L’API Nest est dans `apps/api`. Vue d�
 
 Une piste n’est **pas** une offre. Le potentiel 0–100 est attribué à La Bonne Boîte. Pied de page commun du layout `(site)` (Sonar n’est pas un service officiel) avec un bloc de sources propre à chaque page (source, date, infos indicatives), fourni via `<FooterSources>`.
 
-**Navigation (en cours).** L’accueil, `/explorer` et `/pistes` vivent dans le groupe de routes `(site)`, dont le layout dessine le lien d’évitement et le menu (logique pure dans `lib/navigation`). `/login`, `/register` et les pages d’erreur restent sans menu. Sous 768 px le menu se replie derrière un bouton « Menu ». Le pied de page est commun (`lib/footer`) ; les liens légaux n’apparaissent que quand leur page existe. Reste (issue #22) : session visible, nouvel accueil (tickets #27, #28).
+**Navigation (en cours).** L’accueil, `/explorer` et `/pistes` vivent dans le groupe de routes `(site)`, dont le layout dessine le lien d’évitement et le menu (logique pure dans `lib/navigation`). `/login`, `/register` et les pages d’erreur restent sans menu. Sous 768 px le menu se replie derrière un bouton « Menu ». Le pied de page est commun (`lib/footer`) ; les liens légaux n’apparaissent que quand leur page existe. Reste (issue #22) : session visible (ticket #27).
 
 ## Lancer
 

@@ -80,7 +80,7 @@ Ordre de build (le détail coché est dans [`PROJECT_CONTEXT_AND_TODO.md`](PROJE
 2. SIRENE ciblé (provider Nest, sync admin) — **fait** ; annuaire public **`GET /companies` + page `/explorer` faits** (filtres ville et activité, pagination) ; fiche d'une entreprise pas encore
 3. Auth cookie JWT — **API + pages `/login` `/register` faites** ; pages d'erreur du site faites
 4. LBB overlay — **`GET /leads` + page `/pistes` + mentions Etalab faites** (session, Toulouse durci, potentiel France Travail y compris `is_high_potential: false` ; 502 LBB ≠ liste vide ≠ API éteinte)
-5. Navigation et UX du site (menu, session visible, pied de page, accueil) — **décisions prises (carte #17), spec #22, tickets #24, #27, #28 à implémenter (#23, #25, #26 faits : cadre `(site)`, menu ordinateur et replié, pied de page commun)**
+5. Navigation et UX du site (menu, session visible, pied de page, accueil) — **décisions prises (carte #17), spec #22, tickets #24, #27 à implémenter (#23, #25, #26, #28 faits : cadre `(site)`, menu ordinateur et replié, pied de page commun)**
 6. Toulouse Tech Hub + Radar
 7. CRM Kanban
 
