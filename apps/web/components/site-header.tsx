@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { BrandLink } from "@/components/brand-link";
 import { ModeToggle } from "@/components/mode-toggle";
+import { useSession } from "@/components/session-provider";
 import {
   activeEntryHref,
   NAV_ENTRIES,
@@ -81,8 +82,8 @@ export function SiteHeader() {
           </ul>
           <div className="ml-auto flex items-center gap-3">
             <ModeToggle />
-            <div className="hidden md:block">
-              <SignIn pathname={pathname} />
+            <div className="hidden min-w-0 md:block">
+              <SessionSlot pathname={pathname} className="flex items-center" />
             </div>
             <button
               ref={menuButton}
@@ -125,14 +126,62 @@ export function SiteHeader() {
                 )}
               </li>
             ))}
-            {/* Dernier élément : la place du slot session (ticket suivant). */}
+            {/* Dernier élément : le slot session. */}
             <li>
-              <SignIn pathname={pathname} className={ROW} onNavigate={close} />
+              <SessionSlot pathname={pathname} className={ROW} onNavigate={close} />
             </li>
           </ul>
         </div>
       </nav>
     </header>
+  );
+}
+
+/** Slot session : réserve la place pendant le chargement, puis Connexion ou email + Déconnexion. */
+function SessionSlot({
+  pathname,
+  className = "",
+  onNavigate,
+}: {
+  pathname: string;
+  className?: string;
+  onNavigate?: () => void;
+}) {
+  const { session, signOut } = useSession();
+
+  if (session.status === "loading") {
+    return (
+      <span aria-hidden="true" className={`${className} invisible`}>
+        Connexion
+      </span>
+    );
+  }
+
+  if (session.status === "signedOut") {
+    return (
+      <SignIn pathname={pathname} className={className} onNavigate={onNavigate} />
+    );
+  }
+
+  return (
+    <div className={`${className} min-w-0 gap-3`}>
+      <span
+        title={session.email}
+        className="min-w-0 max-w-32 truncate text-muted-foreground sm:max-w-48"
+      >
+        {session.email}
+      </span>
+      <button
+        type="button"
+        onClick={() => {
+          onNavigate?.();
+          void signOut();
+        }}
+        className={`${FOCUS} ${IDLE} shrink-0`}
+      >
+        Déconnexion
+      </button>
+    </div>
   );
 }
 

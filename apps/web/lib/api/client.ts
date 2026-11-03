@@ -31,6 +31,20 @@ async function readErrorCode(res: Response): Promise<string> {
   return `HTTP_${res.status}`;
 }
 
+const unauthorizedListeners = new Set<() => void>();
+
+/** Abonne un écouteur appelé à chaque réponse 401 ; renvoie la fonction de désabonnement. */
+export function onUnauthorized(listener: () => void): () => void {
+  unauthorizedListeners.add(listener);
+  return () => {
+    unauthorizedListeners.delete(listener);
+  };
+}
+
+function notifyUnauthorized(): void {
+  for (const listener of [...unauthorizedListeners]) listener();
+}
+
 async function request<T>(
   path: string,
   options: { method?: "GET" | "POST"; body?: unknown } = {},
@@ -50,7 +64,10 @@ async function request<T>(
     throw new ApiError(0, NETWORK_ERROR_CODE);
   }
 
-  if (!res.ok) throw new ApiError(res.status, await readErrorCode(res));
+  if (!res.ok) {
+    if (res.status === 401) notifyUnauthorized();
+    throw new ApiError(res.status, await readErrorCode(res));
+  }
   if (res.status === 204) return undefined as T;
   try {
     return (await res.json()) as T;
@@ -71,6 +88,16 @@ export function login(credentials: Credentials): Promise<AuthUser> {
     method: "POST",
     body: credentials,
   });
+}
+
+/** « Qui suis-je » : 401 si non connecté. */
+export function getMe(): Promise<AuthUser> {
+  return request<AuthUser>("/auth/me");
+}
+
+/** Déconnexion : 204. */
+export function logout(): Promise<void> {
+  return request<void>("/auth/logout", { method: "POST" });
 }
 
 export function listLeads(params: ListLeadsParams): Promise<LeadsPage> {

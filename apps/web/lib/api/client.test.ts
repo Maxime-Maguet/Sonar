@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { listLeads, login, register } from "./client";
+import {
+  getMe,
+  listLeads,
+  login,
+  logout,
+  onUnauthorized,
+  register,
+} from "./client";
 import { ApiError } from "./errors";
 
 const BASE = "http://localhost:3001";
@@ -99,6 +106,46 @@ describe("listLeads", () => {
     const url = new URL(fetchMock.mock.calls[0][0] as string);
     expect(url.searchParams.get("rome")).toBe("a&b=c");
     expect([...url.searchParams.keys()]).toEqual(["rome"]);
+  });
+});
+
+describe("getMe / logout", () => {
+  it("getMe GETs /auth/me with credentials include", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ id: "1", email: "a@b.co" }));
+    await expect(getMe()).resolves.toEqual({ id: "1", email: "a@b.co" });
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${BASE}/auth/me`);
+    expect(init.method).toBe("GET");
+    expect(init.credentials).toBe("include");
+  });
+
+  it("logout POSTs /auth/logout and resolves on 204", async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
+    await expect(logout()).resolves.toBeUndefined();
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${BASE}/auth/logout`);
+    expect(init.method).toBe("POST");
+    expect(init.credentials).toBe("include");
+  });
+});
+
+describe("onUnauthorized", () => {
+  it("notifies listeners on any 401, not on other errors, until unsubscribed", async () => {
+    const listener = vi.fn();
+    const off = onUnauthorized(listener);
+
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 500 }));
+    await catchError(getMe());
+    expect(listener).not.toHaveBeenCalled();
+
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 401 }));
+    await catchError(listLeads({ rome: "M1805" }));
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    off();
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 401 }));
+    await catchError(getMe());
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 });
 
