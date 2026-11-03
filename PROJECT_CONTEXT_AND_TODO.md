@@ -168,7 +168,7 @@ CRM
 
 ### H — Déploiement (Vercel)
 
-Décisions : #29 (fermé). Spec : #30. Tickets : [x] #31 adresses de base poolée / directe, [ ] #32 `trust proxy`, [ ] #33 une seule origine côté site (ces trois sont indépendants) → [ ] #34 guide de déploiement → [ ] #35 déploiement de test et vérifications (étapes humaines, sans label d'agent). Site Next.js et API NestJS = deux projets Vercel (plan Hobby), base **Prisma Postgres** (intégration Vercel, région européenne), pas de domaine propre. Limite connue : les limites de débit sont en mémoire, non partagées entre instances (hors périmètre de #30).
+Décisions : #29 (fermé). Spec : #30. Tickets : [x] #31 adresses de base poolée / directe, [x] #32 `trust proxy`, [ ] #33 une seule origine côté site (ces trois sont indépendants) → [ ] #34 guide de déploiement → [ ] #35 déploiement de test et vérifications (étapes humaines, sans label d'agent). Site Next.js et API NestJS = deux projets Vercel (plan Hobby), base **Prisma Postgres** (intégration Vercel, région européenne), pas de domaine propre. Limite connue : les limites de débit sont en mémoire, non partagées entre instances (hors périmètre de #30).
 
 - [ ] **Une seule origine** : le site relaie l'API par réécriture (`rewrites` Next vers l'API). Le cookie `sonar_session` reste first-party, `SameSite=Lax`. Raison : deux projets en `*.vercel.app` sont deux sites distincts, le cookie ne passerait pas. `NEXT_PUBLIC_API_URL` et `WEB_ORIGIN` = adresse du site ; variable serveur distincte pour l'annuaire public rendu côté serveur
 - [ ] `trust proxy` côté API : sans lui, les limites par IP (login 5/min, annuaire 60/min) comptent l'adresse du relais. Le nombre de sauts est à mesurer sur le déploiement de test
@@ -188,6 +188,6 @@ Décisions : #29 (fermé). Spec : #30. Tickets : [x] #31 adresses de base poolé
 
 **Où on en est (3 nov. 2026).** Fait : pages d'erreur (#9, #10), phrases d'échec connexion / inscription (#11), annuaire public `/explorer` et `GET /companies` (#12 à #14), corrections Sirene (#15, #16). Navigation et UX : carte #17, décisions #18 à #21 fermées, spec #22 publiée, tickets d'implémentation #23 à #28 tous faits (cadre et menu, marque sur connexion / inscription, menu replié téléphone, pied de page commun, session visible, nouvel accueil). Reste le tour d'ensemble UX par le propriétaire (plusieurs défauts d'UX connus, à reprendre en détail).
 
-Déploiement : décisions #29 (fermé), spec #30, tickets #31 à #35 (bloc H). #31 (adresses de base poolée / directe, Postgres 17) fait ; #32, #33 prêts, #34 et #35 ensuite.
+Déploiement : décisions #29 (fermé), spec #30, tickets #31 à #35 (bloc H). #31 (adresses de base poolée / directe, Postgres 17) et #32 (`TRUST_PROXY_HOPS`) faits ; #33 prêt, #34 et #35 ensuite.
 
-**Prochaine étape :** les tickets de déploiement #32 et #33 sont indépendants et peuvent se faire à tout moment, puis #34 (guide) et #35 (déploiement de test, par le propriétaire). Hors de cette file : skeletons et `loading.tsx`, pages légales, fiche `/explorer/[slug]`, filtre par technologie. Ne pas rouvrir Sirene, `GET /leads`, ni Health sauf bug. CRM et agenda restent plus bas dans la file.
+**Prochaine étape :** le ticket de déploiement #33 peut se faire à tout moment, puis #34 (guide) et #35 (déploiement de test, par le propriétaire). Hors de cette file : skeletons et `loading.tsx`, pages légales, fiche `/explorer/[slug]`, filtre par technologie. Ne pas rouvrir Sirene, `GET /leads`, ni Health sauf bug. CRM et agenda restent plus bas dans la file.
