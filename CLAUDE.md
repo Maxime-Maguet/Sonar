@@ -25,7 +25,7 @@ Points transverses à connaître :
 ## Commandes (depuis la racine)
 
 ```bash
-npm run docker:up                          # Postgres 16 sur localhost:5433
+npm run docker:up                          # Postgres 17 sur localhost:5433
 npm run prisma:migrate:deploy -w api       # applique les migrations existantes
 npm run prisma:migrate -w api              # dev : peut créer une migration
 npm run dev                                # web :3000 + api :3001

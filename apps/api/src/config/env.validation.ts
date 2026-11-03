@@ -12,6 +12,7 @@ import {
   Max,
   Min,
   Validate,
+  ValidateIf,
   ValidationArguments,
   ValidatorConstraint,
   ValidatorConstraintInterface,
@@ -49,6 +50,17 @@ class EnvironmentVariables {
   @IsNotEmpty()
   @Matches(/^postgres(ql)?:\/\//)
   DATABASE_URL: string;
+
+  // Optionnelle : adresse via pooler, lue par l'application au runtime.
+  // Absente ou vide = non définie (repli sur DATABASE_URL).
+  @Transform(({ value }) => {
+    const trimmed = trimString({ value });
+    return trimmed === '' ? undefined : trimmed;
+  })
+  @ValidateIf((env: EnvironmentVariables) => env.DATABASE_URL_POOLED !== undefined)
+  @IsString()
+  @Matches(/^postgres(ql)?:\/\//)
+  DATABASE_URL_POOLED?: string;
 
   @Transform(trimString)
   @IsString()

@@ -30,7 +30,7 @@ Deux couches données en V1 :
 |---|---|
 | Front | Next.js 16 App Router, React 19, Tailwind CSS v4, shadcn/ui, Inter |
 | Back | NestJS 12 (ESM), Helmet, ValidationPipe |
-| Data | PostgreSQL 16 (Docker, port **5433**), Prisma **7** (`prisma.config.ts`, adapter `pg`) |
+| Data | PostgreSQL 17 (Docker, port **5433**), Prisma **7** (`prisma.config.ts`, adapter `pg`) |
 | Monorepo | **npm workspaces** (pas pnpm, pas Bun) |
 | Node | 24.x (voir `.nvmrc`) |
 
@@ -107,7 +107,8 @@ Copier `.env.example` → `.env` à la **racine** (jamais commit).
 
 | Variable | Rôle |
 |---|---|
-| `DATABASE_URL` | Postgres (compose → `localhost:5433`) |
+| `DATABASE_URL` | Postgres, adresse **directe** (compose → `localhost:5433`) : CLI Prisma (migrations, generate, seed) et repli de l'application |
+| `DATABASE_URL_POOLED` | Optionnelle : adresse Postgres via pooler, utilisée par l'application au runtime (sinon `DATABASE_URL`) |
 | `JWT_SECRET` | Cookie de session `sonar_session` (HS256) |
 | `FT_CLIENT_ID` / `FT_CLIENT_SECRET` | OAuth France Travail / LBB (détails : [`docs/LBB_API.md`](docs/LBB_API.md)) |
 | `INSEE_API_KEY` | Header Sirene `X-INSEE-Api-Key-Integration` |
@@ -129,6 +130,8 @@ npm run prisma:migrate:deploy -w api   # applique les migrations déjà commité
 npm run dev            # web :3000 + api :3001
 ```
 
+> **Passage à Postgres 17** : un volume local créé avec Postgres 16 ne démarre pas sous 17. Il faut repartir d'un volume neuf : `docker compose down -v` (**EFFACE les données locales**), puis `npm run docker:up` et `npm run prisma:migrate:deploy -w api`.
+
 Autres :
 
 ```bash
@@ -149,7 +152,7 @@ Prisma CLI : depuis `apps/api`, ou `npm run … -w api`, pour que `prisma.config
 
 - `npm run prisma:migrate -w api` — développement : peut **créer** un fichier de migration.
 - `npm run prisma:migrate:deploy -w api` — applique les fichiers déjà présents, sans en inventer (Docker Postgres `:5433` allumé). C’est la commande à utiliser une fois la base démarrée, et plus tard en CI.
-- La CI GitHub Actions (`.github/workflows/api.yml`) lance `prisma migrate deploy` puis les tests unitaires `api` sur Postgres 16 (port 5432).
+- La CI GitHub Actions (`.github/workflows/api.yml`) lance `prisma migrate deploy` puis les tests unitaires `api` sur Postgres 17 (port 5432).
 
 ---
 

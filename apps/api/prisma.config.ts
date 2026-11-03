@@ -35,6 +35,7 @@ export default defineConfig({
   },
 
   datasource: {
+    // Adresse directe (jamais DATABASE_URL_POOLED, réservée à l'application).
     // `env("DATABASE_URL")` : obligatoire, erreur claire si la var manque
     // (mieux que process.env.DATABASE_URL qui peut être undefined)
     url: env("DATABASE_URL"),

@@ -174,6 +174,42 @@ describe('validate', () => {
     );
   });
 
+  it('accepts an absent DATABASE_URL_POOLED', () => {
+    expect(validate(validEnv()).DATABASE_URL_POOLED).toBeUndefined();
+  });
+
+  it.each(['', '   '])(
+    'treats DATABASE_URL_POOLED %j as absent',
+    (value) => {
+      expect(
+        validate(validEnv({ DATABASE_URL_POOLED: value })).DATABASE_URL_POOLED,
+      ).toBeUndefined();
+    },
+  );
+
+  it('accepts a valid Postgres DATABASE_URL_POOLED', () => {
+    const pooled = 'postgres://sonar:sonar@pooler.example.com:6543/sonar';
+    expect(
+      validate(validEnv({ DATABASE_URL_POOLED: `  ${pooled} ` }))
+        .DATABASE_URL_POOLED,
+    ).toBe(pooled);
+  });
+
+  it('rejects a malformed DATABASE_URL_POOLED, naming it without its value', () => {
+    let message = '';
+    try {
+      validate(
+        validEnv({ DATABASE_URL_POOLED: 'mysql://user:secret-pool@host/db' }),
+      );
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    expect(message).toBe(
+      "Variables d'environnement invalides ou manquantes : DATABASE_URL_POOLED",
+    );
+    expect(message).not.toContain('secret-pool');
+  });
+
   it('defaults API_PORT to 3001 when it is absent', () => {
     // validEnv() n'envoie pas API_PORT. Le défaut est celui de main.ts.
     expect(validate(validEnv()).API_PORT).toBe(3001);
