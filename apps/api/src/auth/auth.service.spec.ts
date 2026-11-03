@@ -1,7 +1,12 @@
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from './guards/auth.guard.js';
-import { AuthService } from './auth.service.js';
+import {
+  AuthService,
+  SESSION_COOKIE_NAME,
+  SESSION_HINT_COOKIE_NAME,
+  SESSION_HINT_COOKIE_VALUE,
+} from './auth.service.js';
 import { PasswordService } from './password.service.js';
 
 const SECRET = 'test-jwt-secret';
@@ -20,6 +25,16 @@ function cookieHost(setCookie: MockFn = vi.fn(), clearCookie: MockFn = vi.fn()) 
   return {
     httpAdapter: { setCookie, clearCookie },
   };
+}
+
+/** Appels (setCookie ou clearCookie) portant sur le cookie `name`, indépendamment de l'ordre. */
+function callsFor(mock: MockFn, name: string) {
+  return mock.mock.calls.filter((call) => call[1] === name);
+}
+
+/** Noms des cookies touchés, dans l'ordre des appels. */
+function cookieNames(mock: MockFn) {
+  return mock.mock.calls.map((call) => call[1] as string);
 }
 
 function authService(
@@ -101,7 +116,43 @@ describe('attachSessionToCookie', () => {
 
     service.attachSessionToCookie({} as never, 'signed-token');
 
-    expect(setCookie.mock.calls[0][3].secure).toBe(true);
+    expect(callsFor(setCookie, SESSION_COOKIE_NAME)[0][3].secure).toBe(true);
+    expect(callsFor(setCookie, SESSION_HINT_COOKIE_NAME)[0][3].secure).toBe(
+      true,
+    );
+  });
+
+  it('keeps sonar_session httpOnly and sets the hint cookie readable by JS', () => {
+    process.env.NODE_ENV = 'test';
+    const setCookie = vi.fn();
+    const { service } = authService(
+      { user: { findUnique: vi.fn() } },
+      cookieHost(setCookie),
+    );
+    const res = {};
+
+    service.attachSessionToCookie(res as never, 'signed-token');
+
+    expect(cookieNames(setCookie)).toEqual([
+      SESSION_COOKIE_NAME,
+      SESSION_HINT_COOKIE_NAME,
+    ]);
+    expect(callsFor(setCookie, SESSION_COOKIE_NAME)[0][3].httpOnly).toBe(true);
+    expect(setCookie).toHaveBeenCalledWith(
+      res,
+      'sonar_session_hint',
+      '1',
+      {
+        httpOnly: false,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24,
+        path: '/',
+      },
+    );
+    expect(SESSION_HINT_COOKIE_VALUE).toBe('1');
+    const hintOptions = callsFor(setCookie, SESSION_HINT_COOKIE_NAME)[0][3];
+    expect(hintOptions).not.toHaveProperty('domain');
   });
 });
 
@@ -125,6 +176,25 @@ describe('clearSessionFromCookie', () => {
 
     expect(clearCookie).toHaveBeenCalledWith(res, 'sonar_session', {
       httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+      secure: true,
+    });
+  });
+
+  it('clears the hint cookie with the same path, sameSite, and secure flags as when set', () => {
+    process.env.NODE_ENV = 'production';
+    const clearCookie = vi.fn();
+    const { service } = authService(
+      { user: { findUnique: vi.fn() } },
+      cookieHost(vi.fn(), clearCookie),
+    );
+    const res = {};
+
+    service.clearSessionFromCookie(res as never);
+
+    expect(clearCookie).toHaveBeenCalledWith(res, 'sonar_session_hint', {
+      httpOnly: false,
       path: '/',
       sameSite: 'lax',
       secure: true,
@@ -243,6 +313,11 @@ describe('AuthGuard', () => {
       'sonar_session',
       expect.objectContaining({ path: '/', sameSite: 'lax' }),
     );
+    expect(clearCookie).toHaveBeenCalledWith(
+      res,
+      'sonar_session_hint',
+      expect.objectContaining({ path: '/', sameSite: 'lax', httpOnly: false }),
+    );
   });
 });
 
@@ -326,8 +401,12 @@ describe('sliding reissue', () => {
 
     await expect(guard.canActivate(context as never)).resolves.toBe(true);
 
-    expect(setCookie).toHaveBeenCalledOnce();
-    const rewritten = setCookie.mock.calls[0][2] as string;
+    expect(callsFor(setCookie, SESSION_COOKIE_NAME)).toHaveLength(1);
+    const hintCalls = callsFor(setCookie, SESSION_HINT_COOKIE_NAME);
+    expect(hintCalls).toHaveLength(1);
+    expect(hintCalls[0][2]).toBe('1');
+    expect(hintCalls[0][3]).toMatchObject({ httpOnly: false, path: '/' });
+    const rewritten = callsFor(setCookie, SESSION_COOKIE_NAME)[0][2] as string;
     expect(rewritten).not.toBe(token);
     const payload = await jwt.verifyAsync(rewritten);
     expect(payload.sub).toBe(USER_ID);
@@ -361,6 +440,7 @@ describe('sliding reissue', () => {
 
     await expect(guard.canActivate(context as never)).resolves.toBe(true);
     expect(setCookie).not.toHaveBeenCalled();
+    expect(callsFor(setCookie, SESSION_HINT_COOKIE_NAME)).toHaveLength(0);
   });
 });
 
@@ -402,8 +482,12 @@ describe('register', () => {
         lastLoginAt: expect.any(Date),
       },
     });
-    expect(setCookie).toHaveBeenCalledOnce();
-    const token = setCookie.mock.calls[0][2] as string;
+    expect(callsFor(setCookie, SESSION_COOKIE_NAME)).toHaveLength(1);
+    const hintCalls = callsFor(setCookie, SESSION_HINT_COOKIE_NAME);
+    expect(hintCalls).toHaveLength(1);
+    expect(hintCalls[0][2]).toBe('1');
+    expect(hintCalls[0][3]).toMatchObject({ httpOnly: false, path: '/' });
+    const token = callsFor(setCookie, SESSION_COOKIE_NAME)[0][2] as string;
     expect(result).toEqual({ id: USER_ID, email: 'ada@example.com' });
     expect(JSON.stringify(result)).not.toContain(token);
     expect(result).not.toHaveProperty('passwordHash');
@@ -519,10 +603,39 @@ describe('login', () => {
       where: { id: USER_ID },
       data: { lastLoginAt: expect.any(Date) },
     });
-    expect(setCookie).toHaveBeenCalledOnce();
-    const token = setCookie.mock.calls[0][2] as string;
+    expect(callsFor(setCookie, SESSION_COOKIE_NAME)).toHaveLength(1);
+    const sessionOptions = callsFor(setCookie, SESSION_COOKIE_NAME)[0][3];
+    expect(sessionOptions.httpOnly).toBe(true);
+    const hintCalls = callsFor(setCookie, SESSION_HINT_COOKIE_NAME);
+    expect(hintCalls).toHaveLength(1);
+    expect(hintCalls[0][2]).toBe('1');
+    expect(hintCalls[0][3]).toMatchObject({ httpOnly: false, path: '/' });
+    const token = callsFor(setCookie, SESSION_COOKIE_NAME)[0][2] as string;
     expect(result).toEqual({ id: USER_ID, email: 'ada@example.com' });
     expect(JSON.stringify(result)).not.toContain(token);
+  });
+
+  it('sets the hint cookie secure in production on login', async () => {
+    const previous = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const findUnique = userLookup({
+        id: USER_ID,
+        email: 'ada@example.com',
+        passwordHash: HASH,
+      });
+      const { service, setCookie } = loginService({ findUnique });
+
+      await service.login('ada@example.com', 'correct horse', {} as never);
+
+      expect(callsFor(setCookie, SESSION_HINT_COOKIE_NAME)[0][3]).toMatchObject({
+        httpOnly: false,
+        secure: true,
+        sameSite: 'lax',
+      });
+    } finally {
+      process.env.NODE_ENV = previous;
+    }
   });
 
   it('rejects a wrong password without a cookie or lastLoginAt update', async () => {
@@ -617,7 +730,10 @@ describe('logout', () => {
       where: { id: USER_ID },
       data: { sessionVersion: { increment: 1 } },
     });
-    expect(clearCookie).toHaveBeenCalledOnce();
+    expect(cookieNames(clearCookie)).toEqual([
+      SESSION_COOKIE_NAME,
+      SESSION_HINT_COOKIE_NAME,
+    ]);
   });
 
   it('clears the cookie without updating when the token is missing', async () => {
@@ -628,7 +744,10 @@ describe('logout', () => {
     ).resolves.toBeUndefined();
     expect(findUnique).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
-    expect(clearCookie).toHaveBeenCalledOnce();
+    expect(cookieNames(clearCookie)).toEqual([
+      SESSION_COOKIE_NAME,
+      SESSION_HINT_COOKIE_NAME,
+    ]);
   });
 
   it('clears the cookie without updating when the token is empty', async () => {
@@ -637,7 +756,10 @@ describe('logout', () => {
     await expect(service.logout('', res as never)).resolves.toBeUndefined();
     expect(findUnique).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
-    expect(clearCookie).toHaveBeenCalledOnce();
+    expect(cookieNames(clearCookie)).toEqual([
+      SESSION_COOKIE_NAME,
+      SESSION_HINT_COOKIE_NAME,
+    ]);
   });
 
   it('clears the cookie without updating when the JWT is expired', async () => {
@@ -656,7 +778,10 @@ describe('logout', () => {
     await expect(service.logout(token, res as never)).resolves.toBeUndefined();
     expect(findUnique).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
-    expect(clearCookie).toHaveBeenCalledOnce();
+    expect(cookieNames(clearCookie)).toEqual([
+      SESSION_COOKIE_NAME,
+      SESSION_HINT_COOKIE_NAME,
+    ]);
   });
 
   it('clears the cookie without updating when the signature is wrong', async () => {
@@ -670,7 +795,10 @@ describe('logout', () => {
     await expect(service.logout(token, res as never)).resolves.toBeUndefined();
     expect(findUnique).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
-    expect(clearCookie).toHaveBeenCalledOnce();
+    expect(cookieNames(clearCookie)).toEqual([
+      SESSION_COOKIE_NAME,
+      SESSION_HINT_COOKIE_NAME,
+    ]);
   });
 
   it('clears the cookie without bumping when ver is already stale', async () => {
@@ -687,7 +815,10 @@ describe('logout', () => {
     await expect(service.logout(token, res as never)).resolves.toBeUndefined();
     expect(findUnique).toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
-    expect(clearCookie).toHaveBeenCalledOnce();
+    expect(cookieNames(clearCookie)).toEqual([
+      SESSION_COOKIE_NAME,
+      SESSION_HINT_COOKIE_NAME,
+    ]);
   });
 
   it('clears the cookie without bumping when the user is gone', async () => {
@@ -702,7 +833,10 @@ describe('logout', () => {
 
     await expect(service.logout(token, res as never)).resolves.toBeUndefined();
     expect(update).not.toHaveBeenCalled();
-    expect(clearCookie).toHaveBeenCalledOnce();
+    expect(cookieNames(clearCookie)).toEqual([
+      SESSION_COOKIE_NAME,
+      SESSION_HINT_COOKIE_NAME,
+    ]);
   });
 
   it('clears the cookie without bumping when ver is missing from the payload', async () => {
@@ -718,7 +852,10 @@ describe('logout', () => {
     await expect(service.logout(token, res as never)).resolves.toBeUndefined();
     expect(findUnique).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
-    expect(clearCookie).toHaveBeenCalledOnce();
+    expect(cookieNames(clearCookie)).toEqual([
+      SESSION_COOKIE_NAME,
+      SESSION_HINT_COOKIE_NAME,
+    ]);
   });
 
   it('does not clear the cookie when the session bump fails', async () => {

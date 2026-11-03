@@ -90,7 +90,7 @@ Ordre de build (le détail coché est dans [`PROJECT_CONTEXT_AND_TODO.md`](PROJE
 |---|---|---|
 | `POST` | `/auth/register`, `/auth/login` | CSRF (`Origin` ∈ liste `WEB_ORIGIN`) |
 | `POST` | `/auth/logout` | CSRF ; 204, efface toujours le cookie |
-| `GET` | `/auth/me` | cookie `sonar_session` |
+| `GET` | `/auth/me` | cookie `sonar_session` ; le site ne l'appelle que si le cookie indice `sonar_session_hint` est présent (jamais utilisé pour autoriser) |
 | `GET` | `/companies` | public ; query `city`, `activityCode`, `page`, `pageSize` (max 50) ; sièges Sirene hors diffusion « P » ; throttle 60 req / 60 s |
 | `GET` | `/health` | public ; ping Postgres |
 | `GET` | `/leads?rome=M1805` | cookie `sonar_session` ; query `rome` obligatoire, `page` / `pageSize` optionnels |

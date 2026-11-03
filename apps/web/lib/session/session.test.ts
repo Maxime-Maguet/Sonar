@@ -3,10 +3,40 @@ import { ApiError } from "@/lib/api/errors";
 import {
   outcomeFromError,
   SESSION_LOADING,
-  sessionAfterUnauthorized,
+  initialSessionCheck,
   sessionFromOutcome,
+  shouldClearHintAfterOutcome,
   shouldClearSessionAfterLogoutError,
 } from "./session";
+
+describe("initialSessionCheck", () => {
+  it("sans indice : pas d'appel réseau", () => {
+    expect(initialSessionCheck(false)).toBe("skip");
+  });
+
+  it("avec indice : on interroge l'API", () => {
+    expect(initialSessionCheck(true)).toBe("fetch");
+  });
+});
+
+describe("shouldClearHintAfterOutcome", () => {
+  it("401 : efface l'indice", () => {
+    expect(shouldClearHintAfterOutcome({ ok: false, status: 401 })).toBe(true);
+  });
+
+  it.each([0, 500, 502, 503])("%i : garde l'indice", (status) => {
+    expect(shouldClearHintAfterOutcome({ ok: false, status })).toBe(false);
+  });
+
+  it("succès : garde l'indice", () => {
+    expect(
+      shouldClearHintAfterOutcome({
+        ok: true,
+        user: { id: "1", email: "a@b.co" },
+      }),
+    ).toBe(false);
+  });
+});
 
 describe("sessionFromOutcome", () => {
   it("l'état initial est « chargement »", () => {
@@ -71,18 +101,5 @@ describe("shouldClearSessionAfterLogoutError", () => {
   it("erreur non ApiError : reste connecté", () => {
     expect(shouldClearSessionAfterLogoutError(new TypeError("x"))).toBe(false);
     expect(shouldClearSessionAfterLogoutError(undefined)).toBe(false);
-  });
-});
-
-describe("sessionAfterUnauthorized", () => {
-  it("un 401 ultérieur fait passer de connecté à déconnecté", () => {
-    const signedIn = sessionFromOutcome({
-      ok: true,
-      user: { id: "1", email: "a@b.co" },
-    });
-    expect(signedIn.status).toBe("signedIn");
-    expect(sessionAfterUnauthorized()).toEqual({
-      status: "signedOut",
-    });
   });
 });

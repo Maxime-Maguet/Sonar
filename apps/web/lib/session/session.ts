@@ -40,6 +40,19 @@ export function shouldClearSessionAfterLogoutError(error: unknown): boolean {
   return error instanceof ApiError && error.status === 401;
 }
 
+/** Au montage : sans indice de session, inutile d'interroger l'API. */
+export function initialSessionCheck(hasHint: boolean): "skip" | "fetch" {
+  return hasHint ? "fetch" : "skip";
+}
+
+/**
+ * Seul un 401 prouve que l'indice est périmé. Réseau (0) ou 5xx : l'indice
+ * peut être valide, on le garde.
+ */
+export function shouldClearHintAfterOutcome(outcome: MeOutcome): boolean {
+  return !outcome.ok && outcome.status === 401;
+}
+
 /** Un 401 reçu par n'importe quel appel navigateur met fin à la session côté menu. */
 export function sessionAfterUnauthorized(): SessionState {
   return SESSION_SIGNED_OUT;

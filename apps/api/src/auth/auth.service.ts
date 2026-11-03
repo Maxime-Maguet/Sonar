@@ -5,6 +5,18 @@ import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { PasswordService } from './password.service.js';
 
+export const SESSION_COOKIE_NAME = 'sonar_session';
+/**
+ * Cookie « indice de session » : non sensible, lisible par le JS du site pour
+ * savoir s'il vaut la peine d'appeler GET /auth/me. Il n'est JAMAIS utilisé
+ * pour l'autorisation côté API (ni AuthGuard ni logout ne le lisent) :
+ * le seul identifiant reste le JWT HttpOnly `sonar_session`.
+ */
+export const SESSION_HINT_COOKIE_NAME = 'sonar_session_hint';
+export const SESSION_HINT_COOKIE_VALUE = '1';
+/** Nest 12.1 : maxAge en secondes (24 h, aligné sur le JWT). */
+const SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24;
+
 /**
  * Service centralisant toute la logique métier liée à l'authentification :
  * génération des jetons JWT, gestion des cookies de session et invalidation de session.
@@ -136,10 +148,20 @@ export class AuthService {
    * @param token - Le jeton JWT généré à stocker
    */
   attachSessionToCookie(res: Response, token: string): void {
-    this.adapterHost.httpAdapter.setCookie(res, 'sonar_session', token, {
+    this.adapterHost.httpAdapter.setCookie(res, SESSION_COOKIE_NAME, token, {
       ...this.sessionCookieFlags(),
-      maxAge: 60 * 60 * 24, // Nest 12.1 : maxAge en secondes (24 h)
+      maxAge: SESSION_COOKIE_MAX_AGE_SECONDS,
     });
+    // Indice lisible par le JS du site (voir SESSION_HINT_COOKIE_NAME).
+    this.adapterHost.httpAdapter.setCookie(
+      res,
+      SESSION_HINT_COOKIE_NAME,
+      SESSION_HINT_COOKIE_VALUE,
+      {
+        ...this.hintCookieFlags(),
+        maxAge: SESSION_COOKIE_MAX_AGE_SECONDS,
+      },
+    );
   }
 
   /**
@@ -150,14 +172,29 @@ export class AuthService {
   clearSessionFromCookie(res: Response): void {
     this.adapterHost.httpAdapter.clearCookie(
       res,
-      'sonar_session',
+      SESSION_COOKIE_NAME,
       this.sessionCookieFlags(),
+    );
+    this.adapterHost.httpAdapter.clearCookie(
+      res,
+      SESSION_HINT_COOKIE_NAME,
+      this.hintCookieFlags(),
     );
   }
 
   private sessionCookieFlags() {
     return {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
+    };
+  }
+
+  /** Flags de l'indice de session : identiques à la session, sauf httpOnly (lisible par le JS). */
+  private hintCookieFlags() {
+    return {
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax' as const,
       path: '/',
