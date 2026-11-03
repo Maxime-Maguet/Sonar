@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { BrandLink } from "@/components/brand-link";
 import { ModeToggle } from "@/components/mode-toggle";
 import { activeEntryHref, NAV_ENTRIES, signInHref } from "@/lib/navigation/navigation";
 
@@ -21,13 +22,7 @@ export function SiteHeader() {
         aria-label="Navigation"
         className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3 text-sm"
       >
-        <Link
-          href="/"
-          aria-label="Sonar, accueil"
-          className={`${FOCUS} text-base font-semibold tracking-tight text-foreground`}
-        >
-          Sonar
-        </Link>
+        <BrandLink />
         <ul className="flex flex-wrap items-center gap-x-6 gap-y-2">
           {NAV_ENTRIES.map((entry) => (
             <li key={entry.href}>
