@@ -14,7 +14,7 @@ Front Next.js 16 (App Router) de Sonar. L’API Nest est dans `apps/api`. Vue d�
 
 Une piste n’est **pas** une offre. Le potentiel 0–100 est attribué à La Bonne Boîte. Pied de page Etalab propre à chaque page (source, date, infos indicatives, Sonar n’est pas un service officiel).
 
-**Navigation (en cours).** Le menu `Accueil / Pistes / Explorer / Connexion` est aujourd’hui dessiné par `/pistes` et `/explorer` seulement. La refonte (cadre `(site)`, menu unique, session visible, pied de page commun, nouvel accueil) est spécifiée dans l’issue #22 et découpée en tickets #23 à #28.
+**Navigation (en cours).** L’accueil, `/explorer` et `/pistes` vivent dans le groupe de routes `(site)`, dont le layout dessine le lien d’évitement et le menu (logique pure dans `lib/navigation`). `/login`, `/register` et les pages d’erreur restent sans menu. Reste (issue #22) : menu téléphone, session visible, pied de page commun, nouvel accueil (tickets #25 à #28).
 
 ## Lancer
 

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { LeadsPage } from "@sonar/api-contract";
 import { Button } from "@/components/ui/button";
-import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { listLeads } from "@/lib/api/client";
 import { ApiError } from "@/lib/api/errors";
@@ -17,7 +16,6 @@ import {
   type PistesLoadFailure,
 } from "@/lib/pistes/load-error";
 import {
-  DEFAULT_ROME,
   loginPathForPistes,
   pistesPath,
   readPage,
@@ -38,7 +36,7 @@ type LoadState =
 
 export function PistesFallback() {
   return (
-    <PistesFrame loginHref={loginPathForPistes(DEFAULT_ROME, 1)}>
+    <PistesFrame>
       <PistesSkeleton />
     </PistesFrame>
   );
@@ -59,10 +57,7 @@ export function PistesBrowser() {
   }, [rome, page, router, searchParams]);
 
   return (
-    <PistesFrame
-      loginHref={loginPathForPistes(rome, page)}
-      fetchedAt={fetchedAt}
-    >
+    <PistesFrame fetchedAt={fetchedAt}>
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">Pistes</h1>
         <p className="text-sm text-muted-foreground">
@@ -154,22 +149,19 @@ function PistesLoader({
 }
 
 function PistesFrame({
-  loginHref,
   fetchedAt,
   children,
 }: {
-  loginHref: string;
   fetchedAt?: string;
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-svh flex-col">
-      <SiteHeader loginHref={loginHref} />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
+    <>
+      <main id="contenu" className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
         {children}
       </main>
       <SiteFooter fetchedAt={fetchedAt} />
-    </div>
+    </>
   );
 }
 

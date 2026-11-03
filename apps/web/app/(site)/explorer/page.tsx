@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { CompaniesPage } from "@sonar/api-contract";
-import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { listCompanies } from "@/lib/api/server";
 import { explorerFooterLines } from "@/lib/explorer/footer-sources";
@@ -67,9 +66,8 @@ export default async function ExplorerPage({
     : decideExplorerState({ failed: true });
 
   return (
-    <div className="flex min-h-svh flex-col">
-      <SiteHeader loginHref="/login" />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
+    <>
+      <main id="contenu" className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">Explorer</h1>
           <p className="text-sm text-muted-foreground">
@@ -189,6 +187,6 @@ export default async function ExplorerPage({
         ) : null}
       </main>
       <SiteFooter lines={explorerFooterLines(data?.syncedAt ?? null)} />
-    </div>
+    </>
   );
 }

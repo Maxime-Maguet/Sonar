@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/mode-toggle";
 
 const swatches = [
   { name: "background", className: "bg-background", role: "fond (clair)" },
@@ -10,13 +9,10 @@ const swatches = [
 
 export default function Home() {
   return (
-    <main className="mx-auto flex min-h-svh max-w-3xl flex-col justify-center gap-8 px-6 py-16">
-      <div className="flex items-center justify-between gap-4">
-        <span className="w-fit rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium tracking-wide text-primary uppercase">
-          Toulouse
-        </span>
-        <ModeToggle />
-      </div>
+    <main id="contenu" className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-8 px-6 py-16">
+      <span className="w-fit rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium tracking-wide text-primary uppercase">
+        Toulouse
+      </span>
 
       <div className="space-y-3">
         <h1 className="text-4xl font-semibold tracking-tight">Sonar</h1>
