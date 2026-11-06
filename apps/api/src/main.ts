@@ -1,4 +1,3 @@
-import { trace } from './boot-trace.js';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmetModule from 'helmet';
@@ -25,9 +24,7 @@ type HelmetFactory = (options?: Readonly<HelmetOptions>) => HelmetMiddleware;
 const helmet = helmetModule as unknown as HelmetFactory;
 
 async function bootstrap() {
-  trace('2/4 modules chargés, création de l\'application');
   const app = await NestFactory.create(AppModule);
-  trace('3/4 application créée');
   const config = app.get(ConfigService);
   // Nombre de proxies devant l'API : à poser avant que les limites par IP
   // ne lisent l'adresse du visiteur. Absent = aucun proxy.
@@ -63,7 +60,6 @@ async function bootstrap() {
   // PORT est imposé par Vercel ; API_PORT sert en local (défaut 3001).
   const port = Number(process.env.PORT ?? process.env.API_PORT ?? 3001);
   await app.listen(port);
-  trace(`4/4 à l'écoute sur le port ${port}`);
 }
 
 await bootstrap();
