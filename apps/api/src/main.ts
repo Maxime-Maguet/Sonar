@@ -1,6 +1,8 @@
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import helmet from 'helmet';
+import helmetModule from 'helmet';
+import type { HelmetOptions } from 'helmet';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { AppModule } from './app.module.js';
 import { PrismaClientExceptionFilter } from './common/filters/prisma-exception.filter.js';
 import cookieParser from 'cookie-parser';
@@ -9,6 +11,17 @@ import { parseTrustProxyHops, resolveTrustProxy } from './config/trust-proxy.js'
 import type { WebOrigins } from './config/web-origins.js';
 import { WEB_ORIGINS } from './config/web-origins.module.js';
 import { ConfigService } from '@nestjs/config';
+
+// Le contrôle de types de Vercel lit les types CommonJS de helmet depuis ce
+// fichier ESM : l'import par défaut y devient un objet non appelable (TS2349).
+// On fixe le type attendu nous-mêmes ; à l'exécution, c'est bien la fonction.
+type HelmetMiddleware = (
+  req: IncomingMessage,
+  res: ServerResponse,
+  next: (error?: unknown) => void,
+) => void;
+type HelmetFactory = (options?: Readonly<HelmetOptions>) => HelmetMiddleware;
+const helmet = helmetModule as unknown as HelmetFactory;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
