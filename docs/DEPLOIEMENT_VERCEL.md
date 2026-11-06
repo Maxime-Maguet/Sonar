@@ -16,7 +16,7 @@ Pas de domaine propre : chaque projet a une adresse `*.vercel.app`.
 
 Les deux projets pointent sur le même dépôt, avec un **Root Directory** différent (`apps/api` et `apps/web`). Le dépôt est un monorepo npm workspaces : activer l'option permettant d'accéder aux fichiers hors du Root Directory (le paquet `packages/api-contract` est compilé par `prepare`).
 
-> À vérifier au premier déploiement : le démarrage de NestJS comme fonction Vercel (support « zéro configuration »). Un premier essai a échoué (`ERR_REQUIRE_ESM`) à cause de `@nestjs/throttler`, seul paquet NestJS en CommonJS : il est remplacé par un module du dépôt en ES module (`apps/api/src/throttler/`, ticket #36, mêmes limites et mêmes noms). Reste à confirmer que `GET /health` répond `200` sur le déploiement de test (étape du propriétaire, pas encore faite). Si une autre erreur de démarrage apparaît, on l'adapte au minimum nécessaire, dans un ticket séparé.
+> **Vérifié le 6 nov. 2026 : NestJS 12 démarre comme fonction Vercel**, après trois corrections (détail et explication en section 8) : le typage de `helmet` (`main.ts`), le remplacement de `@nestjs/throttler` par un module du dépôt (#36), et surtout la suppression du `await` de plus haut niveau autour de `bootstrap()` dans `main.ts`. Les fonctions de l'API sont placées à Paris (`apps/api/vercel.json`, `"regions": ["cdg1"]`), comme la base.
 
 ## 2. Variables par projet
 
@@ -28,16 +28,16 @@ Les deux projets pointent sur le même dépôt, avec un **Root Directory** diff�
 |---|---|---|
 | `NODE_ENV` | non | `production` (obligatoire, sensible à la casse). Active le cookie `secure` et le garde sur `WEB_ORIGIN` |
 | `WEB_ORIGIN` | non | **Uniquement l'adresse stable du site** (ex. `https://<projet-site>.vercel.app`). Pas de localhost ni d'IP privée en production, pas de joker |
-| `TRUST_PROXY_HOPS` | non | Nombre de proxies devant l'API (entier ≥ 0). Valeur de départ à tester : `1` ou `2`, à mesurer (voir 5.4). Une valeur invalide empêche l'API de démarrer |
+| `TRUST_PROXY_HOPS` | non | Nombre de proxies devant l'API (entier ≥ 0). **Valeur retenue : `1`** (mesurée le 6 nov. 2026, voir 5.4). Une valeur invalide empêche l'API de démarrer |
 | `DATABASE_URL` | **oui** | Adresse **directe** de Prisma Postgres. Utilisée par `prisma migrate deploy`, et par l'application si `DATABASE_URL_POOLED` est absente |
 | `DATABASE_URL_POOLED` | **oui** | Adresse **poolée** de Prisma Postgres. Lue par l'application au runtime |
 | `JWT_SECRET` | **oui** | Longue chaîne aléatoire, propre à la production (ne pas réutiliser celle du local) |
 | `FT_CLIENT_ID` | **oui** | Identifiant OAuth France Travail (voir `docs/LBB_API.md`) |
 | `FT_CLIENT_SECRET` | **oui** | Secret OAuth France Travail |
 | `INSEE_API_KEY` | **oui** | Clé API Sirene |
-| `API_PORT` | non | Inutile sur Vercel (défaut `3001`) |
+| `API_PORT` | non | Inutile sur Vercel (défaut `3001`). L'API lit `PORT` (fourni par la plateforme) avant `API_PORT` |
 
-D'où viennent les adresses de la base : l'intégration Prisma Postgres de Vercel crée elle-même les variables de connexion dans le projet auquel on la relie. Selon la spec, l'adresse directe arrive sous `DATABASE_URL` et l'adresse poolée sous une seconde variable. **Point non vérifié (contrôle côté Vercel en attente) :** le nom exact de cette seconde variable ; le dépôt ne permet pas de le confirmer (il ne fait que lire `DATABASE_URL_POOLED`). Après l'intégration, ouvrir *Settings → Environment Variables* du projet API et comparer. Si le nom diffère de `DATABASE_URL_POOLED`, créer `DATABASE_URL_POOLED` à la main avec la valeur de l'adresse poolée. L'API valide les deux (préfixe `postgres://` ou `postgresql://`) et refuse de démarrer sinon.
+D'où viennent les adresses de la base : l'intégration Prisma Postgres de Vercel crée elle-même les variables de connexion dans le projet auquel on la relie. **Vérifié le 6 nov. 2026** : elle crée `DATABASE_URL` (adresse directe, `db.prisma.io:5432`) et `DATABASE_URL_POOLED` (adresse poolée, `pooled.db.prisma.io:5432`), les mêmes noms que ceux lus par l'API, donc rien à recopier. Elle crée aussi `POSTGRES_URL` et `PRISMA_DATABASE_URL`, que Sonar n'utilise pas. L'API valide les deux adresses (préfixe `postgres://` ou `postgresql://`) et refuse de démarrer sinon. Vercel signale ces variables « Needs Attention » (valeur lisible, non marquée *Sensitive*) : sans conséquence pour un compte personnel ; ne les marquer *Sensitive* qu'**après** avoir appliqué les migrations, car on ne peut plus relire la valeur ensuite.
 
 ### Projet site (`apps/web`)
 
@@ -62,7 +62,16 @@ Rien d'autre. Si `API_DIRECT_URL` est absente, aucune règle de relais n'est cr�
    Remove-Item Env:DATABASE_URL
    ```
 
-   Pourquoi c'est sûr : `prisma.config.ts` charge le `.env` racine, mais une variable d'environnement déjà posée dans la session a priorité sur ce fichier. **À vérifier avant de lancer :** que la commande affiche bien le nom de la base de production, pas `localhost:5433`.
+   Dans Git Bash (méthode utilisée le 6 nov. 2026 ; la valeur collée ne s'affiche pas et n'entre pas dans l'historique) :
+
+   ```bash
+   read -s -p "Colle DATABASE_URL : " DATABASE_URL && export DATABASE_URL
+   echo "${DATABASE_URL#*@}" | cut -d/ -f1      # doit afficher db.prisma.io:5432
+   npm run prisma:migrate:deploy -w api
+   unset DATABASE_URL
+   ```
+
+   Pourquoi c'est sûr : `prisma.config.ts` charge le `.env` racine, mais une variable d'environnement déjà posée dans la session a priorité sur ce fichier. **À vérifier avant de lancer :** que la commande affiche bien le nom de la base de production (`db.prisma.io:5432`), pas `localhost:5433`.
 
    Ne jamais utiliser `prisma migrate dev` ni `migrate reset` contre la production : ils peuvent supprimer des données.
 4. Contrôler : la liste des tables apparaît dans l'interface de la base (Prisma Postgres / Studio).
@@ -72,8 +81,8 @@ Rien d'autre. Si `API_DIRECT_URL` est absente, aucune règle de relais n'est cr�
 La synchronisation Sirene demande une session `ADMIN`. Le rôle se pose en base à la main, une fois :
 
 1. Sur le site déployé, **crée ton compte** via la page d'inscription (voir « Inscriptions » dans les points ouverts, section 7).
-2. Ouvre la base de production dans l'interface Prisma Postgres (éditeur SQL) ou avec Prisma Studio branché sur l'adresse directe.
-3. Exécute, en remplaçant l'adresse par la tienne (en minuscules, c'est ainsi qu'elle est stockée) :
+2. Ouvre la base de production avec Prisma Studio branché sur l'adresse directe (même méthode `read -s` que pour les migrations, puis `npm run studio` ; méthode utilisée le 6 nov. 2026 : table `User`, cellule `role` de ta ligne, `ADMIN`, bouton « Save 1 change », puis `unset DATABASE_URL`), ou dans l'éditeur SQL de l'interface Prisma Postgres.
+3. Équivalent en SQL, en remplaçant l'adresse par la tienne (en minuscules, c'est ainsi qu'elle est stockée) :
 
    ```sql
    UPDATE "User" SET role = 'ADMIN' WHERE email = 'ton.adresse@exemple.fr';
@@ -86,21 +95,21 @@ La synchronisation Sirene demande une session `ADMIN`. Le rôle se pose en base 
 À faire sur l'**adresse stable** du site, jamais sur une prévisualisation.
 
 ### 5.1 Démarrage et santé
-- [ ] `GET <adresse API>/health` répond `200` avec `status: ok` (Postgres joignable).
-- [ ] L'API démarre comme fonction Vercel : pas d'erreur de démarrage dans les journaux. Sinon, noter l'erreur et ouvrir un ticket.
-- [ ] La page d'accueil du site s'affiche, et `/explorer` charge l'annuaire (appel serveur via `API_DIRECT_URL`, sans cookie).
+- [x] `GET <adresse API>/health` répond `200` avec `status: ok` (Postgres joignable).
+- [x] L'API démarre comme fonction Vercel : pas d'erreur de démarrage dans les journaux. Sinon, noter l'erreur et ouvrir un ticket.
+- [x] La page d'accueil du site s'affiche, et `/explorer` charge l'annuaire (appel serveur via `API_DIRECT_URL`, sans cookie).
 
 ### 5.2 Connexion et cookie à travers le relais
 Dans le navigateur, ouvrir les outils de développement (onglet Réseau, puis Application → Cookies).
-- [ ] La connexion réussit. La réponse de `POST /api/auth/login` contient `Set-Cookie`.
-- [ ] Le cookie `sonar_session` est stocké **pour l'hôte du site** (et non pour l'hôte de l'API), avec `HttpOnly`, `Secure` et `SameSite=Lax`.
-- [ ] Le cookie `sonar_session_hint` (indice de session) est lui aussi posé : les deux `Set-Cookie` traversent bien la réécriture.
+- [x] La connexion réussit. La réponse de `POST /api/auth/login` contient `Set-Cookie`.
+- [x] Le cookie `sonar_session` est stocké **pour l'hôte du site** (et non pour l'hôte de l'API), avec `HttpOnly`, `Secure` et `SameSite=Lax`.
+- [x] Le cookie `sonar_session_hint` (indice de session) est lui aussi posé : les deux `Set-Cookie` traversent bien la réécriture.
 - [ ] `GET /api/auth/me` répond `200` une fois connecté ; pour un visiteur anonyme, **aucun** appel `/auth/me` n'est fait.
-- [ ] Depuis la page Pistes, la requête `GET /api/leads?...` envoie le cookie de session et répond `200`.
+- [x] Depuis la page Pistes, la requête `GET /api/leads?...` envoie le cookie de session et répond `200`.
 - [ ] La déconnexion fonctionne (le garde CSRF accepte la requête) et les deux cookies sont supprimés.
 
 ### 5.3 Origine vue par l'API (CSRF)
-- [ ] Une mutation faite depuis le site (connexion, déconnexion, inscription) est acceptée : l'en-tête `Origin` reçu par l'API est bien l'origine du site, donc présent dans `WEB_ORIGIN`.
+- [x] Une mutation faite depuis le site (connexion, déconnexion, inscription) est acceptée : l'en-tête `Origin` reçu par l'API est bien l'origine du site, donc présent dans `WEB_ORIGIN`.
 - [ ] Un refus `403` sur une mutation signifie presque toujours que `WEB_ORIGIN` ne correspond pas exactement à l'adresse du site (schéma `https://` et absence de slash final compris).
 
 ### 5.4 Limites par IP et nombre de proxies
@@ -110,6 +119,8 @@ But : que les limites (connexion 5 par minute, annuaire 60 par minute) comptent 
 3. Depuis un **autre réseau** (partage de connexion du téléphone), tenter une connexion : elle ne doit **pas** répondre `429`. Si elle répond `429`, tous les visiteurs sont comptés ensemble : la valeur est trop basse.
 4. Si, au contraire, une adresse falsifiée dans l'en-tête `X-Forwarded-For` envoyé par le client permet de contourner la limite, la valeur est trop haute.
 5. Ajuster (`1`, puis `2`), redéployer, refaire le test, et **noter la valeur retenue** dans `PROJECT_CONTEXT_AND_TODO.md`.
+
+**Résultat mesuré le 6 nov. 2026 : `TRUST_PROXY_HOPS=1` est correcte.** Avec `curl` (8 connexions ratées d'affilée à travers le site, avec `Origin` du site) : `401` cinq fois puis `429`, avec ou sans fausse adresse dans `X-Forwarded-For` (la valeur n'est donc pas trop haute). Depuis le téléphone en données mobiles, pendant que l'adresse du PC était limitée : `401`, pas `429` (la valeur n'est donc pas trop basse).
 
 Rappel : les compteurs sont en mémoire et propres à chaque instance de fonction. Le comptage est donc approximatif sur Vercel (voir section 7).
 
@@ -133,6 +144,16 @@ Rappel : les compteurs sont en mémoire et propres à chaque instance de fonctio
 
 La route est limitée à 2 appels par minute et par instance.
 
+**Méthode plus simple, depuis le navigateur** (utilisée le 6 nov. 2026 ; ta session est envoyée toute seule, pas de cookie à copier). Connecté en `ADMIN` sur le site, onglet Console de `F12` (Chrome peut demander de taper `allow pasting`) :
+
+```js
+const t = performance.now();
+const r = await fetch('/api/sirene/sync', { method: 'POST', credentials: 'include' });
+console.log(r.status, Math.round((performance.now() - t) / 1000) + ' s', (await r.text()).slice(0, 400));
+```
+
+**Résultat mesuré le 6 nov. 2026 : `200` en 5 secondes, 1 015 établissements** dans l'annuaire, avec la fonction à Paris. C'est très en dessous de la limite : la synchronisation reste un appel à l'API déployée, le repli de la section 6 n'est pas nécessaire. La région des fonctions compte : la synchro écrit une ligne à la fois, et un trajet Washington-Paris à chaque écriture l'aurait rallongée.
+
 ## 6. Repli : lancer la synchronisation depuis ton poste
 
 Si la synchronisation ne tient pas avec une large marge sous la limite de durée, on la lance depuis une API **locale** branchée sur la base de **production** :
@@ -154,15 +175,27 @@ Attention : cette API locale écrit dans la base de production. Pour essayer la 
 - Pas de pipeline de déploiement automatique, pas de tâche planifiée, pas de supervision ni de sauvegardes au-delà de ce que fournit Prisma Postgres.
 
 **Points non vérifiés** (à ne pas tenir pour acquis)
-- La durée maximale d'une fonction sur Hobby (les sources divergent : lire le tableau de bord).
-- Ce qui compte comme une « opération » pour le quota gratuit de Prisma Postgres (la spec disait 200 000 par mois ; l'interface Vercel affiche 100 000 opérations par mois : c'est ce chiffre qui fait foi, à relire dans le tableau de bord), et une éventuelle mise en pause après inactivité (au premier appel suivant, la base peut mettre du temps à répondre).
-- Le comportement de `Set-Cookie` et de `Origin` à travers le relais : c'est le but des contrôles 5.2 et 5.3.
-- Le démarrage de NestJS comme fonction Vercel : cause d'échec connue corrigée (#36, limitation de débit en ES module), `GET /health` en `200` encore à vérifier sur le déploiement de test.
-- Le nombre de proxies devant l'API (`TRUST_PROXY_HOPS`) : à mesurer, section 5.4.
-- Le nom exact de la variable d'adresse poolée créée par l'intégration (section 2).
+- La durée maximale d'une fonction sur Hobby (les sources divergent : lire le tableau de bord). Observé seulement : une invocation bloquée a été coupée à 60 s ; la synchronisation Sirene, elle, dure 5 s.
+- Ce qui compte comme une « opération » pour le quota gratuit de Prisma Postgres (la spec disait 200 000 par mois ; l'interface Vercel affiche 100 000 opérations par mois : c'est ce chiffre qui fait foi), et une éventuelle mise en pause après inactivité (au premier appel suivant, la base peut mettre du temps à répondre : un premier appel à froid a pris environ 2 s). La première synchronisation a écrit 1 015 établissements, à raison d'au moins une écriture chacun (estimation, non mesurée) : relever la consommation réelle dans l'interface Prisma.
+- Le contrôle de la déconnexion (les deux cookies supprimés) et de `GET /api/auth/me` (`200` connecté, aucun appel pour un anonyme) : pas encore vérifiés à la main.
+
+**Vérifiés le 6 nov. 2026** (étaient « non vérifiés ») : `Set-Cookie` et `Origin` à travers le relais (5.2, 5.3), le démarrage de NestJS comme fonction Vercel, le nombre de proxies (`TRUST_PROXY_HOPS=1`), le nom des variables de la base.
 
 **Inscriptions.** Faut-il garder l'inscription ouverte à tout le monde en production ? Décision pas encore prise (voir `PROJECT_CONTEXT_AND_TODO.md`, bloc H). En attendant, ton compte se crée par la page d'inscription.
 
-## 8. Rappels de gouvernance des données
+## 8. Pièges rencontrés (déploiement du 6 nov. 2026)
+
+Quatre erreurs se sont succédé avant que l'API réponde ; chacune masquait la suivante.
+
+1. **Contrôle de types de Vercel.** `Type 'typeof import(".../helmet/index")' has no call signatures` : Vercel relit les types de `helmet` en mode CommonJS. Non reproductible chez soi. Contournement dans `main.ts` : un type explicite pour `helmet` (cast), sans effet à l'exécution.
+2. **Un paquet CommonJS qui appelle un module ES.** `ERR_REQUIRE_ESM` : NestJS 12 est en ES module uniquement, `@nestjs/throttler` 6.7.1 (dernière version) est resté en CommonJS. Node 24 l'accepte en local, pas le chargeur des fonctions Vercel. Remplacé par un module du dépôt (#36). Règle : avant d'ajouter un paquet à l'API, regarder s'il est en ES module.
+3. **Un `await` de plus haut niveau autour de `bootstrap()`.** Cause du blocage de 60 s (`INTERNAL_FUNCTION_INVOCATION_FAILED`, aucun log). Le lanceur de Vercel remplace `http.Server.listen` par une fonction qui mémorise le serveur sans démarrer, charge le module d'entrée **en l'attendant**, puis démarre le serveur lui-même. Avec `await bootstrap()`, le chargement attendait `listen()`, qui attendait le démarrage, qui n'arrive qu'après le chargement. Correctif : `void bootstrap().catch(...)` (voir `main.ts`). La documentation Vercel pour NestJS écrit `bootstrap();` sans `await`. Conséquence : tout code placé **après** `await app.listen()` ne s'exécute jamais sur Vercel.
+4. **Région des fonctions.** Par défaut Washington (`iad1`) pour tout nouveau projet, alors que la base est à Paris : `apps/api/vercel.json` avec `"regions": ["cdg1"]` (plan Hobby : une seule région).
+
+**Lire les logs.** Une fonction qui ne répond jamais n'écrit aucun log : ils ne remontent que quand l'invocation se termine. Silence total = chercher un blocage, pas une erreur. Avec la ligne de commande Vercel (après `npx vercel login`) : `vercel logs --scope <équipe> --project sonar --since 30m` (journaux d'exécution), `vercel logs requests ...` (requêtes et statuts), `vercel inspect <adresse>` (région, fonctions). Toutes en lecture seule ; ne jamais lancer `vercel env pull` (écrit les secrets sur le disque).
+
+**Git Bash et PowerShell.** `clip` et `Set-Clipboard` ne marchent pas partout ; les commandes du guide ont une variante pour chacun.
+
+## 9. Rappels de gouvernance des données
 
 Toute donnée Sirene ou La Bonne Boîte affichée cite sa source et sa date de mise à jour. Aucun secret (`FT_*`, `INSEE_API_KEY`) ne va dans le site. Voir `CLAUDE.md` à la racine.
