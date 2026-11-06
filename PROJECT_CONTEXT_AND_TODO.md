@@ -179,6 +179,7 @@ Décisions : #29 (fermé). Spec : #30. Tickets : [x] #31 adresses de base poolé
 - [x] Démarrage de NestJS en fonction Vercel : trois causes corrigées (typage de `helmet` ; `@nestjs/throttler` en CommonJS → #36 ; surtout le `await bootstrap()` de plus haut niveau, qui bloquait 60 s sans log). Fonctions à Paris via `apps/api/vercel.json`. Détail dans `docs/DEPLOIEMENT_VERCEL.md`, section 8
 - [ ] À surveiller : définition d'une « opération » et pause éventuelle de l'offre gratuite Prisma Postgres (quota affiché à 100 000 opérations par mois dans l'interface Vercel ; relever la consommation après la première synchro). Noms des variables d'adresse de base confirmés (`DATABASE_URL`, `DATABASE_URL_POOLED`)
 - [ ] Inscriptions ouvertes à tous en production ? (à trancher)
+- [ ] Constats de sécurité connus, **sans ticket volontairement** (projet perso, pas public ; à rouvrir si le site s'ouvre) : (1) `POST /auth/register` n'a **aucune limitation de débit** (déjà le cas avant #36, `login` en a une) ; (2) si `TRUST_PROXY_HOPS` est absente ou trop basse en production, tous les visiteurs partagent un seul compteur et un seul attaquant peut bloquer tous les logins (valeur actuelle `1`, mesurée) ; (3) le stockage de la limitation n'a pas de plafond de clés et reste par instance (déjà noté plus haut) ; (4) `@nestjs/throttler` reste CommonJS : si une version compatible NestJS 12 sort, le module `apps/api/src/throttler/` (670 lignes) pourra être remplacé par le paquet officiel
 
 ### Agenda API (après LBB, avant ou après le Kanban)
 
