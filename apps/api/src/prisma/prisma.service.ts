@@ -17,7 +17,12 @@ export class PrismaService
   constructor() {
     const connectionString = resolveDatabaseUrl(process.env);
     const isDev = process.env.NODE_ENV === 'development';
-    const adapter = new PrismaPg({ connectionString });
+    // Délai maximum de connexion : sans lui, une base injoignable bloque le
+    // démarrage sans erreur (le pilote pg attend indéfiniment par défaut).
+    const adapter = new PrismaPg({
+      connectionString,
+      connectionTimeoutMillis: 10_000,
+    });
     super({
       adapter,
       log: isDev ? ['info', 'warn', 'error'] : ['warn', 'error'],
