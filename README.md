@@ -46,6 +46,7 @@ sonar/
   docker-compose.yml    # Postgres
   .env.example
   docs/DESIGN_TOKENS.md
+  docs/DEPLOIEMENT_VERCEL.md
   PROJECT_CONTEXT_AND_TODO.md
   apps/web/             # Next — UI
   apps/api/             # Nest — API + Prisma
@@ -118,6 +119,8 @@ Copier `.env.example` → `.env` à la **racine** (jamais commit).
 | `NEXT_PUBLIC_API_URL` | **À mettre dans `apps/web/.env.local`** (Next ne lit pas le `.env` racine). Base de l’API vue par le navigateur : URL absolue en local (`http://localhost:3001`), chemin relatif `/api` en production (même origine que le site). Seule variable publique du web ; jamais de `FT_*` / `INSEE_*` ici |
 | `API_DIRECT_URL` | **À mettre dans `apps/web/.env.local`.** Optionnel, serveur uniquement : adresse réelle de l’API. Si définie, Next relaie `/api/*` vers elle et l’annuaire rendu côté serveur l’utilise. Vide en local |
 | `API_PORT` | Nest (`3001`) |
+
+Déploiement sur Vercel (variables par projet, migrations, rôle `ADMIN`, liste de contrôle du déploiement de test) : [`docs/DEPLOIEMENT_VERCEL.md`](docs/DEPLOIEMENT_VERCEL.md).
 
 ---
 
