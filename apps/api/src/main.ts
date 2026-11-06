@@ -62,4 +62,10 @@ async function bootstrap() {
   await app.listen(port);
 }
 
-await bootstrap();
+// Pas de top-level await : le lanceur Vercel attend la fin du chargement de ce
+// module avant de démarrer le serveur qu'il a capturé ; attendre listen() ici
+// le bloque (la promesse de Nest ne se résout qu'une fois le serveur démarré).
+void bootstrap().catch((error: unknown) => {
+  console.error(error);
+  process.exit(1);
+});
