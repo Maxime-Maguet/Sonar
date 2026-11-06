@@ -57,7 +57,8 @@ async function bootstrap() {
   // Permet de contrôler les requêtes entrantes depuis différentes origines
   applyCors(app, app.get<WebOrigins>(WEB_ORIGINS), config.get<string>('NODE_ENV'));
   // Démarrage du serveur
-  const port = Number(process.env.API_PORT ?? 3001); // Port d'écoute
+  // PORT est imposé par Vercel ; API_PORT sert en local (défaut 3001).
+  const port = Number(process.env.PORT ?? process.env.API_PORT ?? 3001);
   await app.listen(port);
 }
 
