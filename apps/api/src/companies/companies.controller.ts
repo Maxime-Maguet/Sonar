@@ -4,7 +4,7 @@ import {
   SkipThrottle,
   Throttle,
   ThrottlerGuard,
-} from '@nestjs/throttler';
+} from '../throttler/index.js';
 import type { CompaniesPage } from '@sonar/api-contract';
 import { CompaniesService } from './companies.service.js';
 import { ListCompaniesQueryDto } from './dto/list-companies-query.dto.js';

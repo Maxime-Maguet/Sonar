@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common/constants';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
-import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { seconds, ThrottlerGuard, ThrottlerModule } from '../throttler/index.js';
 import request from 'supertest';
 import { AuthService } from '../auth/auth.service.js';
 import { AdminGuard } from '../auth/guards/admin.guard.js';

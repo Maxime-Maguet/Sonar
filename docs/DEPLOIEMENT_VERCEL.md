@@ -16,7 +16,7 @@ Pas de domaine propre : chaque projet a une adresse `*.vercel.app`.
 
 Les deux projets pointent sur le même dépôt, avec un **Root Directory** différent (`apps/api` et `apps/web`). Le dépôt est un monorepo npm workspaces : activer l'option permettant d'accéder aux fichiers hors du Root Directory (le paquet `packages/api-contract` est compilé par `prepare`).
 
-> À vérifier au premier déploiement : le démarrage de NestJS comme fonction Vercel (support « zéro configuration »). Si le démarrage actuel (`main.ts`, qui appelle `app.listen`) ne convient pas, on l'adapte au minimum nécessaire, dans un ticket séparé.
+> À vérifier au premier déploiement : le démarrage de NestJS comme fonction Vercel (support « zéro configuration »). Un premier essai a échoué (`ERR_REQUIRE_ESM`) à cause de `@nestjs/throttler`, seul paquet NestJS en CommonJS : il est remplacé par un module du dépôt en ES module (`apps/api/src/throttler/`, ticket #36, mêmes limites et mêmes noms). Reste à confirmer que `GET /health` répond `200` sur le déploiement de test (étape du propriétaire, pas encore faite). Si une autre erreur de démarrage apparaît, on l'adapte au minimum nécessaire, dans un ticket séparé.
 
 ## 2. Variables par projet
 
@@ -37,7 +37,7 @@ Les deux projets pointent sur le même dépôt, avec un **Root Directory** diff�
 | `INSEE_API_KEY` | **oui** | Clé API Sirene |
 | `API_PORT` | non | Inutile sur Vercel (défaut `3001`) |
 
-D'où viennent les adresses de la base : l'intégration Prisma Postgres de Vercel crée elle-même les variables de connexion dans le projet auquel on la relie. Selon la spec, l'adresse directe arrive sous `DATABASE_URL` et l'adresse poolée sous une seconde variable. **Point non vérifié :** le nom exact de cette seconde variable. Après l'intégration, ouvrir *Settings → Environment Variables* du projet API et comparer. Si le nom diffère de `DATABASE_URL_POOLED`, créer `DATABASE_URL_POOLED` à la main avec la valeur de l'adresse poolée. L'API valide les deux (préfixe `postgres://` ou `postgresql://`) et refuse de démarrer sinon.
+D'où viennent les adresses de la base : l'intégration Prisma Postgres de Vercel crée elle-même les variables de connexion dans le projet auquel on la relie. Selon la spec, l'adresse directe arrive sous `DATABASE_URL` et l'adresse poolée sous une seconde variable. **Point non vérifié (contrôle côté Vercel en attente) :** le nom exact de cette seconde variable ; le dépôt ne permet pas de le confirmer (il ne fait que lire `DATABASE_URL_POOLED`). Après l'intégration, ouvrir *Settings → Environment Variables* du projet API et comparer. Si le nom diffère de `DATABASE_URL_POOLED`, créer `DATABASE_URL_POOLED` à la main avec la valeur de l'adresse poolée. L'API valide les deux (préfixe `postgres://` ou `postgresql://`) et refuse de démarrer sinon.
 
 ### Projet site (`apps/web`)
 
@@ -155,9 +155,9 @@ Attention : cette API locale écrit dans la base de production. Pour essayer la 
 
 **Points non vérifiés** (à ne pas tenir pour acquis)
 - La durée maximale d'une fonction sur Hobby (les sources divergent : lire le tableau de bord).
-- Ce qui compte comme une « opération » pour le quota gratuit de Prisma Postgres (200 000 par mois selon la spec), et une éventuelle mise en pause après inactivité (au premier appel suivant, la base peut mettre du temps à répondre).
+- Ce qui compte comme une « opération » pour le quota gratuit de Prisma Postgres (la spec disait 200 000 par mois ; l'interface Vercel affiche 100 000 opérations par mois : c'est ce chiffre qui fait foi, à relire dans le tableau de bord), et une éventuelle mise en pause après inactivité (au premier appel suivant, la base peut mettre du temps à répondre).
 - Le comportement de `Set-Cookie` et de `Origin` à travers le relais : c'est le but des contrôles 5.2 et 5.3.
-- Le démarrage de NestJS comme fonction Vercel.
+- Le démarrage de NestJS comme fonction Vercel : cause d'échec connue corrigée (#36, limitation de débit en ES module), `GET /health` en `200` encore à vérifier sur le déploiement de test.
 - Le nombre de proxies devant l'API (`TRUST_PROXY_HOPS`) : à mesurer, section 5.4.
 - Le nom exact de la variable d'adresse poolée créée par l'intégration (section 2).
 

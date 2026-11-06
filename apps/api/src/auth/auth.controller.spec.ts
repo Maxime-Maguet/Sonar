@@ -1,6 +1,6 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { GUARDS_METADATA, HTTP_CODE_METADATA } from '@nestjs/common/constants';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerGuard } from '../throttler/index.js';
 import { AuthController } from './auth.controller.js';
 import { AuthGuard } from './guards/auth.guard.js';
 

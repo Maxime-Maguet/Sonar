@@ -14,7 +14,7 @@ import {
   SkipThrottle,
   Throttle,
   ThrottlerGuard,
-} from '@nestjs/throttler';
+} from '../throttler/index.js';
 import { AuthGuard } from '../auth/guards/auth.guard.js';
 import { AdminGuard } from '../auth/guards/admin.guard.js';
 import { SireneService } from './sirene.service.js';

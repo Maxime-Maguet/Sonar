@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { seconds, ThrottlerModule } from '@nestjs/throttler';
+import { seconds, ThrottlerModule } from '../throttler/index.js';
 import request from 'supertest';
 import { AdminGuard } from '../auth/guards/admin.guard.js';
 import { AuthGuard } from '../auth/guards/auth.guard.js';

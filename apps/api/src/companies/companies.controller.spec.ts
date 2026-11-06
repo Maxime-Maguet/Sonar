@@ -1,7 +1,7 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { GUARDS_METADATA } from '@nestjs/common/constants';
 import { Test } from '@nestjs/testing';
-import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { seconds, ThrottlerGuard, ThrottlerModule } from '../throttler/index.js';
 import request from 'supertest';
 import { AuthController } from '../auth/auth.controller.js';
 import { AuthService } from '../auth/auth.service.js';

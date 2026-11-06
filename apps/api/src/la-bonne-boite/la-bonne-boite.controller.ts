@@ -4,7 +4,7 @@ import {
   seconds,
   SkipThrottle,
   Throttle,
-} from '@nestjs/throttler';
+} from '../throttler/index.js';
 import { LaBonneBoiteService } from './la-bonne-boite.service.js';
 import { AuthGuard } from '../auth/guards/auth.guard.js';
 import { ListLeadsQueryDto } from './dto/list-leads-query.dto.js';

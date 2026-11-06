@@ -7,7 +7,7 @@ import { HealthModule } from './health/health.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { SireneModule } from './sirene/sirene.module.js';
 import { validate } from './config/env.validation.js';
-import { seconds, ThrottlerModule } from '@nestjs/throttler';
+import { seconds, ThrottlerModule } from './throttler/index.js';
 import { LaBonneBoiteModule } from './la-bonne-boite/la-bonne-boite.module.js';
 import { CompaniesModule } from './companies/companies.module.js';
 

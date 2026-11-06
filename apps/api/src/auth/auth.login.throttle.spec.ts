@@ -1,6 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { seconds, ThrottlerModule } from '@nestjs/throttler';
+import { seconds, ThrottlerModule } from '../throttler/index.js';
 import request from 'supertest';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';

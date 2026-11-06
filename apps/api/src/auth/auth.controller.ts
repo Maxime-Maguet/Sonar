@@ -14,7 +14,7 @@ import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
 import type { Response, Request } from 'express';
-import { seconds, SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { seconds, SkipThrottle, Throttle, ThrottlerGuard } from '../throttler/index.js';
 
 type SessionRequest = Request & { user?: { sub: string; ver: number } };
 
