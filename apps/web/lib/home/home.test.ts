@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
+import type { SessionState } from "@/lib/session/session";
+import * as home from "./home";
 import {
   companiesCounter,
   formatSyncDate,
-  HOME_BADGE,
-  HOME_INTRO,
-  HOME_PARAGRAPHS,
-  HOME_TITLE,
+  HOME_FEATURES,
+  HOME_STEPS,
+  CTA_TEXT,
+  FEATURES_SUBTITLE,
   homeCounters,
   PISTES_ACTION,
   PRIMARY_ACTION,
@@ -13,7 +15,28 @@ import {
   secondaryAction,
 } from "./home";
 
-const copy = [HOME_BADGE, HOME_TITLE, HOME_INTRO, ...HOME_PARAGRAPHS];
+/** Tous les textes exportés du module (parcours récursif), hors classes CSS. */
+function collectTexts(value: unknown, out: string[] = []): string[] {
+  if (typeof value === "string") out.push(value);
+  else if (Array.isArray(value)) for (const v of value) collectTexts(v, out);
+  else if (value !== null && typeof value === "object") {
+    for (const v of Object.values(value)) collectTexts(v, out);
+  }
+  return out;
+}
+
+const { HOME_ACTION_SIZE_CLASS, ...exportedValues } = home;
+void HOME_ACTION_SIZE_CLASS;
+const exportedTexts = collectTexts(
+  Object.values(exportedValues).filter((v) => typeof v !== "function"),
+);
+const copy = [
+  ...exportedTexts,
+  ...home.homeCounters(null).flatMap((c) => [c.label, c.caption ?? ""]),
+  ...[{ status: "signedOut" }, { status: "signedIn", email: "a@b.fr" }].map(
+    (session) => home.secondaryAction(session as SessionState)?.label ?? "",
+  ),
+];
 
 describe("companiesCounter", () => {
   it("shows the total, the source and the sync date", () => {
@@ -24,6 +47,12 @@ describe("companiesCounter", () => {
 
   it("shows the source without date when the sync date is missing", () => {
     const counter = companiesCounter({ hits: 5, syncedAt: null });
+    expect(counter.value).toBe("5");
+    expect(counter.caption).toBe("Source : INSEE / Sirene");
+  });
+
+  it("shows the source without date when the sync date is invalid", () => {
+    const counter = companiesCounter({ hits: 5, syncedAt: "pas une date" });
     expect(counter.value).toBe("5");
     expect(counter.caption).toBe("Source : INSEE / Sirene");
   });
@@ -82,17 +111,56 @@ describe("secondaryAction", () => {
 });
 
 describe("page copy", () => {
-  it("never says offre", () => {
-    for (const text of [...copy, PRIMARY_ACTION.label, PISTES_ACTION.label]) {
-      expect(text).not.toMatch(/offre/i);
-    }
+  it("covers every exported text", () => {
+    expect(exportedTexts.length).toBeGreaterThan(30);
+    expect(exportedTexts).toContain(HOME_FEATURES[0].ctaLabel);
+    expect(exportedTexts).toContain(home.COUNTERS_LABEL);
+    expect(exportedTexts).toContain(home.FEATURE_SOON_BADGE);
+  });
+
+  it("never says offre or job in any text", () => {
+    for (const text of copy) expect(text).not.toMatch(/offre|job/i);
+  });
+
+  it("avoids published-announcement wording", () => {
+    for (const text of copy) expect(text).not.toMatch(/annonce publi/i);
   });
 
   it("contains no hard-coded figure", () => {
     for (const text of copy) expect(text).not.toMatch(/\d/);
   });
 
-  it("describes agenda, radar and CRM as planned", () => {
-    expect(HOME_PARAGRAPHS.join(" ")).toMatch(/bientôt/);
+  it("has 5 features and 3 steps", () => {
+    expect(HOME_FEATURES.map((f) => f.key)).toEqual(["directory", "pistes", "agenda", "radar", "crm"]);
+    expect(HOME_STEPS).toHaveLength(3);
+  });
+
+  it("describes agenda, radar and CRM as planned, in the future tense, without link", () => {
+    expect(CTA_TEXT).toMatch(/bientôt/);
+    expect(FEATURES_SUBTITLE).toMatch(/bientôt/);
+    const soon = HOME_FEATURES.filter((f) => f.status === "soon");
+    expect(soon.map((f) => f.key)).toEqual(["agenda", "radar", "crm"]);
+    for (const feature of soon) {
+      expect(feature.href).toBeUndefined();
+      expect(feature.ctaLabel).toBeUndefined();
+      expect(feature.description).toMatch(/seront|signalera|suivra/);
+    }
+  });
+
+  it("links only the available features, to /explorer and /pistes", () => {
+    for (const feature of HOME_FEATURES) {
+      expect(feature.status === "available").toBe(feature.href !== undefined);
+      expect(feature.status === "available").toBe(feature.ctaLabel !== undefined);
+    }
+    const hrefs = Object.fromEntries(HOME_FEATURES.map((f) => [f.key, f.href]));
+    expect(hrefs).toEqual({
+      directory: "/explorer",
+      pistes: "/pistes",
+      agenda: undefined,
+      radar: undefined,
+      crm: undefined,
+    });
+    expect(PRIMARY_ACTION.href).toBe("/explorer");
+    expect(PISTES_ACTION.href).toBe("/pistes");
   });
 });

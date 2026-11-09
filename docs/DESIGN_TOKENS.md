@@ -52,14 +52,14 @@ Dégradé **sky -> indigo**, réservé au logo « Sonar » et à des accents pon
 
 Utilitaires (`globals.css`) : `text-brand` (texte en dégradé, utilisé par le logo), classes Tailwind `from-brand-from` / `to-brand-to`.
 
-Définis, `card-lift` et les ombres sont utilisés par les cartes d'entreprise (#46) ; **pas encore utilisé** (ticket accueil) : `bg-brand-glow` (halo doux derrière un bloc d'accueil).
+`card-lift` et les ombres sont utilisés par les cartes d'entreprise (#46) ; `bg-brand-glow` (halo doux) est utilisé par l'accueil (#47), derrière le hero et le bloc d'appel à l'action. `text-brand-from` colore les sur-titres, badges « Disponible » et numéros d'étapes de l'accueil (jamais le texte courant). Le h1 « Sonar » de l'accueil utilise `text-brand` (accent ponctuel).
 
 ## Ton et densité
 
 Plus chaleureux et plus aéré : titres et marque plus grands, cartes avec ombre douce, halo de marque sur l'accueil. Pas d'illustration ni d'image décorative pour l'instant.
 
-- Échelle de titres : marque `text-2xl lg:text-3xl font-bold` ; titre de page d'accueil `text-4xl font-semibold` ; titres de section `text-2xl font-semibold` ; corps `text-base` ; légendes `text-sm`/`text-xs`.
-- Conteneur large : `mx-auto w-full max-w-6xl px-6 md:px-8`, partagé par l'en-tête, le `main` et le pied de page (alignement identique). Mesure de lecture `max-w-3xl` à l'intérieur, alignée à gauche.
+- Échelle de titres : marque `text-2xl lg:text-3xl font-bold` ; titre de page d'accueil `text-5xl md:text-6xl font-semibold` ; titres de section `text-2xl md:text-3xl font-semibold` (accueil) ; bouton du hero `h-11 px-6 text-base` ; corps `text-base` ; légendes `text-sm`/`text-xs`.
+- Conteneur large : `mx-auto w-full max-w-6xl px-6 md:px-8`, partagé par l'en-tête, le `main` et le pied de page (alignement identique). Mesure de lecture `max-w-3xl` à l'intérieur, alignée à gauche sur les pages de liste ; l'accueil (#47) est centré (sections avec leur propre padding vertical, `main` sans `justify-center`).
 - Ombres : `--shadow-card` (repos) et `--shadow-card-hover` (survol), définies dans un `@theme` simple, avec variante `.dark` plus forte (noir). Utilisées par `card-lift` (#46).
 
 ## Radius
