@@ -41,12 +41,49 @@ Les composants lisent `--background`, `--primary`, etc. Ne pas coller des hex en
 - `--font-sans` / `--font-heading` → `var(--font-inter)`
 - Corps : `font-sans` ; titres : tracking serré, poids 600
 
+## Marque (ticket #37)
+
+Dégradé **sky -> indigo**, réservé au logo « Sonar » et à des accents ponctuels (halo d'accueil). Jamais sur du texte courant ni sur les boutons.
+
+| Token | Clair | Sombre | Usage |
+|---|---|---|---|
+| `--brand-from` | sky-600 (contraste sur fond clair) | sky-400 | début du dégradé |
+| `--brand-to` | indigo-500 | indigo-400 | fin du dégradé |
+
+Utilitaires (`globals.css`) : `text-brand` (texte en dégradé, utilisé par le logo), classes Tailwind `from-brand-from` / `to-brand-to`.
+
+Définis mais **pas encore utilisés** (appliqués par les tickets cartes / accueil) : `bg-brand-glow` (halo doux derrière un bloc d'accueil), `card-lift`, `--shadow-card`, `--shadow-card-hover`.
+
+## Ton et densité
+
+Plus chaleureux et plus aéré : titres et marque plus grands, cartes avec ombre douce, halo de marque sur l'accueil. Pas d'illustration ni d'image décorative pour l'instant.
+
+- Échelle de titres : marque `text-2xl font-bold` ; titre de page d'accueil `text-4xl` à `md:text-5xl` ; titres de section `text-2xl font-semibold` ; corps `text-base` ; légendes `text-sm`/`text-xs`.
+- Conteneur large : `max-w-6xl` pour l'en-tête ; marges horizontales `px-6` (mobile), `md:px-8` (ordinateur).
+- Ombres : `--shadow-card` (repos) et `--shadow-card-hover` (survol), définies dans un `@theme` simple, avec variante `.dark` plus forte (noir). Pas encore utilisées (tickets cartes / accueil).
+
 ## Radius
 
-`--radius: 0.625rem` (défaut shadcn).
+`--radius: 0.75rem` (était 0.625rem : angles un peu plus doux, tout l'échelle `rounded-*` suit).
+
+## Mouvement
+
+Un seul langage : **lent et discret**, 300 ms, courbe `--ease-calm` (classe `ease-calm`).
+
+- Cartes cliquables : classe `card-lift` (monte de 2 px, ombre plus marquée, filet teinté de `--primary`), pas encore utilisée.
+- Boutons : transition 300 ms sur couleur, ombre, filet et `transform` ; bouton principal prend `shadow-md` au survol. L'appui actif (1 px) est instantané sous mouvement réduit.
+- Liens du menu et logo : fondu de couleur 300 ms ; le logo s'éclaircit (`hover:brightness-110`) sans baisser le contraste.
+- Curseur : `pointer` sur tout `button`/`[role=button]` actif (règle globale), `not-allowed` sur les boutons natifs `:disabled` uniquement (le `Button` shadcn utilise `pointer-events-none`, donc pas de curseur). Les liens gardent le pointeur natif.
+- `prefers-reduced-motion: reduce` : plus de transition ni de déplacement (`motion-reduce:transition-none`, repli intégré à `card-lift`).
+
+## En-tête
+
+Conteneur `max-w-6xl`, `py-4`, écarts `gap-x-8`. Marque à gauche, menu juste après, **slot session (thème, email, Déconnexion) poussé à droite** (`ml-auto`, `gap-4`). La structure du menu (#18) ne change pas.
 
 ## Interdit
 
 - Compteurs marketing en dur (« 120+ entreprises »)
 - Forcer `class="dark"` sur `<html>`
-- Couleurs hors slate / sky sans mise à jour de ce fichier
+- Couleurs hors slate / sky / indigo (indigo : seulement via `--brand-to`) sans mise à jour de ce fichier
+- Dégradé de marque sur du texte courant ou sur les boutons
+- Animation de plus de 300 ms, ou qui ignore `prefers-reduced-motion`

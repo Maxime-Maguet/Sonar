@@ -6,7 +6,7 @@ export function BrandLink({ className = "" }: { className?: string }) {
     <Link
       href="/"
       aria-label="Sonar, accueil"
-      className={`rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 text-base font-semibold tracking-tight text-foreground ${className}`.trim()}
+      className={`rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 text-brand text-2xl font-bold tracking-tight transition-[filter] duration-300 hover:brightness-110 motion-reduce:transition-none ${className}`.trim()}
     >
       Sonar
     </Link>

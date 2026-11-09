@@ -45,6 +45,19 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Marque : dégradé sky -> indigo (logo, accents ponctuels) */
+  --color-brand-from: var(--brand-from);
+  --color-brand-to: var(--brand-to);
+}
+
+/* Mouvement et ombres : valeurs fixes, sans référence à une autre variable (donc @theme simple) */
+@theme {
+  --ease-calm: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-card: 0 1px 2px oklch(20.8% 0.042 265.755 / 0.06),
+    0 4px 12px oklch(20.8% 0.042 265.755 / 0.06);
+  --shadow-card-hover: 0 2px 4px oklch(20.8% 0.042 265.755 / 0.08),
+    0 12px 28px oklch(20.8% 0.042 265.755 / 0.12);
 }
 
 /* Palette Tailwind v4 (theme.css) : surfaces slate, accent sky */
@@ -72,7 +85,9 @@
   --chart-3: oklch(27.9% 0.041 260.031);
   --chart-4: oklch(20.8% 0.042 265.755);
   --chart-5: oklch(12.9% 0.042 264.695);
-  --radius: 0.625rem;
+  --radius: 0.75rem;
+  --brand-from: oklch(58.8% 0.158 241.966); /* sky-600, contraste sur slate-50 */
+  --brand-to: oklch(58.5% 0.233 277.117); /* indigo-500 */
   --sidebar: oklch(98.4% 0.003 247.858);
   --sidebar-foreground: oklch(20.8% 0.042 265.755);
   --sidebar-primary: oklch(68.5% 0.169 237.323);
@@ -107,6 +122,11 @@
   --chart-3: oklch(37.2% 0.044 257.287);
   --chart-4: oklch(27.9% 0.041 260.031);
   --chart-5: oklch(98.4% 0.003 247.858);
+  --brand-from: oklch(74.6% 0.16 232.661); /* sky-400 */
+  --brand-to: oklch(67.3% 0.182 276.935); /* indigo-400 */
+  /* Ombres plus fortes en sombre (noir) : surcharge des variables du @theme */
+  --shadow-card: 0 1px 2px oklch(0% 0 0 / 0.3), 0 4px 12px oklch(0% 0 0 / 0.25);
+  --shadow-card-hover: 0 2px 4px oklch(0% 0 0 / 0.35), 0 12px 28px oklch(0% 0 0 / 0.45);
   --sidebar: oklch(27.9% 0.041 260.031);
   --sidebar-foreground: oklch(98.4% 0.003 247.858);
   --sidebar-primary: oklch(74.6% 0.16 232.661);
@@ -126,5 +146,46 @@
   }
   html {
     @apply font-sans;
+  }
+  /* Curseur main sur tout ce qui se clique (Tailwind v4 laisse le curseur par défaut sur les boutons) */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  :disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* Texte en dégradé de marque (logo « Sonar ») */
+@utility text-brand {
+  background-image: linear-gradient(to right, var(--brand-from), var(--brand-to));
+  background-clip: text;
+  color: transparent;
+}
+
+/* Halo doux derrière un bloc d'accueil */
+@utility bg-brand-glow {
+  background-image:
+    radial-gradient(60% 80% at 20% 0%, color-mix(in oklch, var(--brand-from) 18%, transparent), transparent),
+    radial-gradient(50% 70% at 90% 10%, color-mix(in oklch, var(--brand-to) 14%, transparent), transparent);
+}
+
+/* Carte cliquable : monte de 2 px et gagne de l'ombre, lentement (300 ms) */
+@utility card-lift {
+  box-shadow: var(--shadow-card);
+  transition-property: transform, box-shadow, border-color;
+  transition-duration: 300ms;
+  transition-timing-function: var(--ease-calm);
+  &:hover {
+    transform: translateY(-0.125rem);
+    box-shadow: var(--shadow-card-hover);
+    border-color: color-mix(in oklch, var(--primary) 40%, var(--border));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:hover {
+      transform: none;
+    }
   }
 }

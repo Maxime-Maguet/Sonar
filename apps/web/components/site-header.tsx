@@ -15,8 +15,9 @@ import {
 const FOCUS =
   "rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 const ACTIVE = "font-medium text-foreground";
-const IDLE = "text-muted-foreground hover:text-foreground";
-const ROW = "flex min-h-11 items-center px-6";
+const IDLE =
+  "text-muted-foreground transition-colors duration-300 hover:text-foreground motion-reduce:transition-none";
+const ROW = "flex min-h-11 items-center px-6 md:px-8";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -56,9 +57,9 @@ export function SiteHeader() {
   return (
     <header className="border-b border-border">
       <nav aria-label="Navigation">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3 text-sm">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 gap-y-2 px-6 py-4 text-sm md:px-8">
           <BrandLink />
-          <ul className="hidden flex-wrap items-center gap-x-6 gap-y-2 md:flex">
+          <ul className="hidden flex-wrap items-center gap-x-8 gap-y-2 md:flex">
             {NAV_ENTRIES.map((entry) => (
               <li key={entry.href}>
                 {entry.exists ? (
@@ -80,7 +81,7 @@ export function SiteHeader() {
               </li>
             ))}
           </ul>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-4">
             <ModeToggle />
             <div className="hidden min-w-0 md:block">
               <SessionSlot pathname={pathname} className="flex items-center" />
@@ -91,7 +92,7 @@ export function SiteHeader() {
               aria-expanded={open}
               aria-controls={panelId}
               onClick={() => setOpen((value) => !value)}
-              className={`${FOCUS} inline-flex min-h-11 items-center rounded-lg border border-border px-3 font-medium text-foreground hover:bg-muted md:hidden`}
+              className={`${FOCUS} inline-flex min-h-11 items-center rounded-lg border border-border px-3 font-medium text-foreground transition-colors duration-300 hover:bg-muted motion-reduce:transition-none md:hidden`}
             >
               Menu
             </button>
