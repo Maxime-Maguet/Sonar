@@ -1,7 +1,7 @@
 export const LBB_SOURCE_URL =
   "https://francetravail.io/produits-partages/catalogue/bonne-boite-v2";
 export const LBB_SOURCE_LABEL = "France Travail / La Bonne Boîte";
-export const INSEE_SOURCE_URL = "https://www.sirene.fr/";
+export const INSEE_SOURCE_URL = "https://www.insee.fr/fr/information/6675111";
 export const INSEE_SOURCE_LABEL = "INSEE / Sirene";
 export const INDICATIVE_NOTICE = "Ces informations sont indicatives.";
 export const UNOFFICIAL_NOTICE = "Sonar n'est pas un service officiel.";
