@@ -21,8 +21,15 @@ export function SiteFooter() {
           <p key={i}>
             {line.map((segment, j) =>
               segment.href ? (
-                <a key={j} href={segment.href} className={`${LINK_CLASS} ${FOCUS}`}>
+                <a
+                  key={j}
+                  href={segment.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${LINK_CLASS} ${FOCUS}`}
+                >
                   {segment.text}
+                  <span className="sr-only"> (s&apos;ouvre dans un nouvel onglet)</span>
                 </a>
               ) : (
                 segment.text
