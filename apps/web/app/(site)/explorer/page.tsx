@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { CompaniesPage } from "@sonar/api-contract";
+import { Button } from "@/components/ui/button";
 import { FooterSources } from "@/components/footer-sources";
 import { listCompanies } from "@/lib/api/server";
 import { explorerFooterLines } from "@/lib/explorer/footer-sources";
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 const fieldClassName =
-  "h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+  "h-9 w-full cursor-pointer rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 const linkClassName =
   "font-medium text-primary underline-offset-4 hover:underline";
 const NO_ACTIVITY_LABEL = "Activité non renseignée";
@@ -113,12 +114,10 @@ export default async function ExplorerPage({
                 ))}
               </select>
             </label>
-            <button
-              type="submit"
-              className="h-9 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-            >
+            {/* Button porte le curseur, le survol et l'anneau de focus clavier */}
+            <Button type="submit" variant="default" size="lg">
               Filtrer
-            </button>
+            </Button>
           </form>
         ) : null}
 
