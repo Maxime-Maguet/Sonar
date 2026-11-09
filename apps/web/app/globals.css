@@ -199,3 +199,12 @@
     background-color: color-mix(in oklch, var(--background) 97%, transparent);
   }
 }
+
+/* Notifications (sonner) : pas d'animation si l'utilisateur la réduit */
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toast],
+  [data-sonner-toast] * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -11,8 +11,10 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { getMe, logout, onUnauthorized } from "@/lib/api/client";
 import { clearSessionHint, readSessionHint } from "@/lib/session/hint";
+import { SIGNED_OUT_TOAST } from "@/lib/session/messages";
 import {
   initialSessionCheck,
   outcomeFromError,
@@ -102,6 +104,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     clearSessionHint();
     setSession(SESSION_SIGNED_OUT);
     router.push("/");
+    toast(SIGNED_OUT_TOAST);
   }, [router]);
 
   const value = useMemo(() => ({ session, signOut }), [session, signOut]);

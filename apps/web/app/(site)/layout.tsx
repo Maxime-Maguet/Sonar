@@ -3,6 +3,7 @@ import { FooterSourcesProvider } from "@/components/footer-sources";
 import { SessionProvider } from "@/components/session-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function SiteLayout({ children }: { children: ReactNode }) {
   return (
@@ -19,6 +20,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
           {children}
           <SiteFooter />
         </div>
+        <Toaster />
       </FooterSourcesProvider>
     </SessionProvider>
   );
