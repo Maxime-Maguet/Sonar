@@ -18,6 +18,8 @@ const ACTIVE = "font-medium text-foreground";
 const IDLE =
   "text-muted-foreground transition-colors duration-300 hover:text-foreground motion-reduce:transition-none";
 const ROW = "flex min-h-11 items-center px-6 md:px-8";
+// = breakpoint lg de Tailwind
+const LG_QUERY = "(min-width: 1024px)";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -26,9 +28,9 @@ export function SiteHeader() {
   const panelId = useId();
   const menuButton = useRef<HTMLButtonElement>(null);
 
+  // Clic sur un lien du panneau ou sur Déconnexion : on ferme sans toucher au focus.
   function close() {
     setOpen(false);
-    menuButton.current?.focus();
   }
 
   // Échap ferme le panneau où que soit le focus ; le focus revient au bouton.
@@ -44,9 +46,9 @@ export function SiteHeader() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
-  // Passage à md : le panneau mobile est masqué, on réinitialise l'état.
+  // Passage à lg : le panneau mobile est masqué, on réinitialise l'état.
   useEffect(() => {
-    const query = window.matchMedia("(min-width: 768px)");
+    const query = window.matchMedia(LG_QUERY);
     function onChange(event: MediaQueryListEvent) {
       if (event.matches) setOpen(false);
     }
@@ -55,11 +57,11 @@ export function SiteHeader() {
   }, []);
 
   return (
-    <header className="border-b border-border">
+    <header className="header-glass sticky top-0 z-40 border-b border-border">
       <nav aria-label="Navigation">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 gap-y-2 px-6 py-4 text-sm md:px-8">
-          <BrandLink />
-          <ul className="hidden flex-wrap items-center gap-x-8 gap-y-2 md:flex">
+        <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-6 text-sm md:px-8 lg:grid lg:h-16 lg:grid-cols-[1fr_auto_1fr] lg:gap-8">
+          <BrandLink className="lg:justify-self-start" />
+          <ul className="hidden items-center gap-x-5 lg:flex xl:gap-x-8">
             {NAV_ENTRIES.map((entry) => (
               <li key={entry.href}>
                 {entry.exists ? (
@@ -81,9 +83,9 @@ export function SiteHeader() {
               </li>
             ))}
           </ul>
-          <div className="ml-auto flex items-center gap-4">
+          <div className="flex min-w-0 items-center justify-end gap-4 xl:gap-6">
             <ModeToggle />
-            <div className="hidden min-w-0 md:block">
+            <div className="hidden min-w-0 lg:block">
               <SessionSlot pathname={pathname} className="flex items-center" />
             </div>
             <button
@@ -92,7 +94,7 @@ export function SiteHeader() {
               aria-expanded={open}
               aria-controls={panelId}
               onClick={() => setOpen((value) => !value)}
-              className={`${FOCUS} inline-flex min-h-11 items-center rounded-lg border border-border px-3 font-medium text-foreground transition-colors duration-300 hover:bg-muted motion-reduce:transition-none md:hidden`}
+              className={`${FOCUS} inline-flex min-h-11 items-center rounded-lg border border-border px-3 font-medium text-foreground transition-colors duration-300 hover:bg-muted motion-reduce:transition-none lg:hidden`}
             >
               Menu
             </button>
@@ -102,7 +104,7 @@ export function SiteHeader() {
         <div
           id={panelId}
           hidden={!open}
-          className="border-t border-border md:hidden"
+          className="max-h-[calc(100svh-3.5rem)] overflow-y-auto overscroll-contain border-t border-border bg-background lg:hidden"
         >
           <ul className="text-sm">
             {NAV_ENTRIES.map((entry) => (
@@ -168,7 +170,7 @@ function SessionSlot({
     <div className={`${className} min-w-0 gap-3`}>
       <span
         title={session.email}
-        className="min-w-0 max-w-32 truncate text-muted-foreground sm:max-w-48"
+        className="min-w-0 max-w-40 truncate text-muted-foreground xl:max-w-56"
       >
         {session.email}
       </span>

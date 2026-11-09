@@ -68,122 +68,124 @@ export default async function ExplorerPage({
 
   return (
     <>
-      <main id="contenu" className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Explorer</h1>
-          <p className="text-sm text-muted-foreground">
-            L&apos;annuaire des entreprises de Sonar. Une piste est un signal à
-            vérifier. Le libellé d&apos;activité décrit l&apos;entreprise, il ne
-            dit rien de ses projets d&apos;embauche.
-          </p>
-        </div>
-
-        {data ? (
-          <form
-            method="get"
-            action="/explorer"
-            className="flex flex-col gap-3 sm:flex-row sm:items-end"
-          >
-            <label className="flex flex-1 flex-col gap-1 text-sm font-medium">
-              Commune
-              <select
-                name="city"
-                defaultValue={query.city ?? ""}
-                className={fieldClassName}
-              >
-                <option value="">Toutes les communes</option>
-                {data.facets.cities.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex flex-1 flex-col gap-1 text-sm font-medium">
-              Activité
-              <select
-                name="activityCode"
-                defaultValue={query.activityCode ?? ""}
-                className={fieldClassName}
-              >
-                <option value="">Toutes les activités</option>
-                {data.facets.activities.map((activity) => (
-                  <option key={activity.code} value={activity.code}>
-                    {activity.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {/* Button porte le curseur, le survol et l'anneau de focus clavier */}
-            <Button type="submit" variant="default" size="lg">
-              Filtrer
-            </Button>
-          </form>
-        ) : null}
-
-        {state === "api-down" ? (
-          <p role="alert" className="text-sm text-destructive">
-            {EXPLORER_MESSAGES["api-down"]}
-          </p>
-        ) : null}
-        {state === "empty" ? (
-          <p className="text-sm text-muted-foreground">
-            {EXPLORER_MESSAGES.empty}
-          </p>
-        ) : null}
-        {state === "no-match" ? (
-          <p className="text-sm text-muted-foreground">
-            {EXPLORER_MESSAGES["no-match"]}
-          </p>
-        ) : null}
-
-        {data && state === "results" ? (
-          <div className="flex flex-col gap-4">
+      <main id="contenu" className="mx-auto w-full max-w-6xl flex-1 px-6 py-10 md:px-8">
+        <div className="flex w-full max-w-3xl flex-col gap-8">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight">Explorer</h1>
             <p className="text-sm text-muted-foreground">
-              {formatTotal(data.hits)}
+              L&apos;annuaire des entreprises de Sonar. Une piste est un signal à
+              vérifier. Le libellé d&apos;activité décrit l&apos;entreprise, il ne
+              dit rien de ses projets d&apos;embauche.
             </p>
-            <ul className="flex flex-col gap-4">
-              {data.items.map((item, index) => (
-                <li
-                  key={`${item.name}-${item.city}-${index}`}
-                  className="rounded-xl border border-border bg-card p-6 shadow-sm"
-                >
-                  <h2 className="text-base font-medium">{item.name}</h2>
-                  <p className="text-sm text-muted-foreground">{item.city}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {item.activityLabel ?? NO_ACTIVITY_LABEL}
-                  </p>
-                </li>
-              ))}
-            </ul>
-            <nav
-              aria-label="Pagination"
-              className="flex items-center gap-3 text-sm"
-            >
-              {query.page > 1 ? (
-                <Link
-                  href={explorerPath({ ...query, page: query.page - 1 })}
-                  className={linkClassName}
-                >
-                  Précédent
-                </Link>
-              ) : (
-                <span className="text-muted-foreground">Précédent</span>
-              )}
-              <span>Page {query.page}</span>
-              {query.page * data.pageSize < data.hits ? (
-                <Link
-                  href={explorerPath({ ...query, page: query.page + 1 })}
-                  className={linkClassName}
-                >
-                  Suivant
-                </Link>
-              ) : (
-                <span className="text-muted-foreground">Suivant</span>
-              )}
-            </nav>
           </div>
-        ) : null}
+
+          {data ? (
+            <form
+              method="get"
+              action="/explorer"
+              className="flex flex-col gap-3 sm:flex-row sm:items-end"
+            >
+              <label className="flex flex-1 flex-col gap-1 text-sm font-medium">
+                Commune
+                <select
+                  name="city"
+                  defaultValue={query.city ?? ""}
+                  className={fieldClassName}
+                >
+                  <option value="">Toutes les communes</option>
+                  {data.facets.cities.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-1 flex-col gap-1 text-sm font-medium">
+                Activité
+                <select
+                  name="activityCode"
+                  defaultValue={query.activityCode ?? ""}
+                  className={fieldClassName}
+                >
+                  <option value="">Toutes les activités</option>
+                  {data.facets.activities.map((activity) => (
+                    <option key={activity.code} value={activity.code}>
+                      {activity.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {/* Button porte le curseur, le survol et l'anneau de focus clavier */}
+              <Button type="submit" variant="default" size="lg">
+                Filtrer
+              </Button>
+            </form>
+          ) : null}
+
+          {state === "api-down" ? (
+            <p role="alert" className="text-sm text-destructive">
+              {EXPLORER_MESSAGES["api-down"]}
+            </p>
+          ) : null}
+          {state === "empty" ? (
+            <p className="text-sm text-muted-foreground">
+              {EXPLORER_MESSAGES.empty}
+            </p>
+          ) : null}
+          {state === "no-match" ? (
+            <p className="text-sm text-muted-foreground">
+              {EXPLORER_MESSAGES["no-match"]}
+            </p>
+          ) : null}
+
+          {data && state === "results" ? (
+            <div className="flex flex-col gap-4">
+              <p className="text-sm text-muted-foreground">
+                {formatTotal(data.hits)}
+              </p>
+              <ul className="flex flex-col gap-4">
+                {data.items.map((item, index) => (
+                  <li
+                    key={`${item.name}-${item.city}-${index}`}
+                    className="rounded-xl border border-border bg-card p-6 shadow-sm"
+                  >
+                    <h2 className="text-base font-medium">{item.name}</h2>
+                    <p className="text-sm text-muted-foreground">{item.city}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.activityLabel ?? NO_ACTIVITY_LABEL}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              <nav
+                aria-label="Pagination"
+                className="flex items-center gap-3 text-sm"
+              >
+                {query.page > 1 ? (
+                  <Link
+                    href={explorerPath({ ...query, page: query.page - 1 })}
+                    className={linkClassName}
+                  >
+                    Précédent
+                  </Link>
+                ) : (
+                  <span className="text-muted-foreground">Précédent</span>
+                )}
+                <span>Page {query.page}</span>
+                {query.page * data.pageSize < data.hits ? (
+                  <Link
+                    href={explorerPath({ ...query, page: query.page + 1 })}
+                    className={linkClassName}
+                  >
+                    Suivant
+                  </Link>
+                ) : (
+                  <span className="text-muted-foreground">Suivant</span>
+                )}
+              </nav>
+            </div>
+          ) : null}
+        </div>
       </main>
       <FooterSources lines={explorerFooterLines(data?.syncedAt ?? null)} />
     </>

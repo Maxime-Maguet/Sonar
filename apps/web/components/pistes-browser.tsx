@@ -158,8 +158,10 @@ function PistesFrame({
 }) {
   return (
     <>
-      <main id="contenu" className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
-        {children}
+      <main id="contenu" className="mx-auto w-full max-w-6xl flex-1 px-6 py-10 md:px-8">
+        <div className="flex w-full max-w-3xl flex-col gap-8">
+          {children}
+        </div>
       </main>
       <FooterSources lines={pistesFooterLines(fetchedAt)} />
     </>

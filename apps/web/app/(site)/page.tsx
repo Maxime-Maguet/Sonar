@@ -29,7 +29,7 @@ export default async function Home() {
   const counters = homeCounters(await readCompaniesSummary());
 
   return (
-    <main id="contenu" className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-8 px-6 py-16">
+    <main id="contenu" className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center gap-8 px-6 py-16 md:px-8">
       <span className="w-fit rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium tracking-wide text-primary uppercase">
         {HOME_BADGE}
       </span>
@@ -44,7 +44,7 @@ export default async function Home() {
         ))}
       </div>
 
-      <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <dl className="grid max-w-3xl grid-cols-1 gap-3 sm:grid-cols-3">
         {counters.map((counter) => (
           <div key={counter.key} className="rounded-xl border border-border bg-card p-4">
             <dt className="text-sm text-muted-foreground">{counter.label}</dt>

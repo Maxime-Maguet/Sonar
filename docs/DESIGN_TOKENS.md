@@ -58,8 +58,8 @@ Définis mais **pas encore utilisés** (appliqués par les tickets cartes / accu
 
 Plus chaleureux et plus aéré : titres et marque plus grands, cartes avec ombre douce, halo de marque sur l'accueil. Pas d'illustration ni d'image décorative pour l'instant.
 
-- Échelle de titres : marque `text-2xl font-bold` ; titre de page d'accueil `text-4xl` à `md:text-5xl` ; titres de section `text-2xl font-semibold` ; corps `text-base` ; légendes `text-sm`/`text-xs`.
-- Conteneur large : `max-w-6xl` pour l'en-tête ; marges horizontales `px-6` (mobile), `md:px-8` (ordinateur).
+- Échelle de titres : marque `text-2xl lg:text-3xl font-bold` ; titre de page d'accueil `text-4xl font-semibold` ; titres de section `text-2xl font-semibold` ; corps `text-base` ; légendes `text-sm`/`text-xs`.
+- Conteneur large : `mx-auto w-full max-w-6xl px-6 md:px-8`, partagé par l'en-tête, le `main` et le pied de page (alignement identique). Mesure de lecture `max-w-3xl` à l'intérieur, alignée à gauche.
 - Ombres : `--shadow-card` (repos) et `--shadow-card-hover` (survol), définies dans un `@theme` simple, avec variante `.dark` plus forte (noir). Pas encore utilisées (tickets cartes / accueil).
 
 ## Radius
@@ -78,7 +78,15 @@ Un seul langage : **lent et discret**, 300 ms, courbe `--ease-calm` (classe `eas
 
 ## En-tête
 
-Conteneur `max-w-6xl`, `py-4`, écarts `gap-x-8`. Marque à gauche, menu juste après, **slot session (thème, email, Déconnexion) poussé à droite** (`ml-auto`, `gap-4`). La structure du menu (#18) ne change pas.
+Trois zones en grille dès `lg` (1024 px, `lg:grid-cols-[1fr_auto_1fr]`) : marque à gauche, pages au centre, **slot session (thème, email, Déconnexion) à droite** (`justify-end`, `gap-4 xl:gap-6`), sur toutes les pages du cadre, connecté ou non. En dessous de `lg` (tablette 768 px comprise) : marque, thème et bouton Menu, les pages et la session passent dans le panneau replié. Le point de bascule est à `lg` car 5 liens + marque + session ne tiennent pas dans 689 px (768 px). Hauteur `h-14` (replié) / `lg:h-16`. Conteneur `max-w-6xl px-6 md:px-8`, partagé avec `main` et le pied de page (les paddings restent en `md`).
+
+- Liens centraux : `gap-x-5` à `lg`, `xl:gap-x-8` à partir de 1280 px.
+- Email : `max-w-40` à `lg`, `xl:max-w-56`, tronqué (`truncate`, `min-w-0`) ; « Déconnexion » et le bouton thème ne rétrécissent jamais (`shrink-0`).
+- Marque `text-2xl lg:text-3xl leading-none`.
+- Fixe : `sticky top-0 z-40`, fond `header-glass` (fond à 80 %, flou 12 px ; repli à 97 % sans `backdrop-filter`), clair et sombre. `scroll-pt-16` sur `html` pour que les ancres ne passent pas sous l'en-tête.
+- Lien d'évitement : `fixed`, `z-50` au focus (au-dessus de l'en-tête).
+- Panneau mobile : `max-h-[calc(100svh-3.5rem)] overflow-y-auto`, fond plein.
+- La structure du menu (#18) ne change pas.
 
 ## Interdit
 

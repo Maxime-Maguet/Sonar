@@ -145,7 +145,7 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans;
+    @apply font-sans scroll-pt-16;
   }
   /* Curseur main sur tout ce qui se clique (Tailwind v4 laisse le curseur par défaut sur les boutons) */
   button:not(:disabled),
@@ -187,5 +187,15 @@
     &:hover {
       transform: none;
     }
+  }
+}
+
+/* En-tête fixe : fond translucide + flou ; repli quasi opaque sans backdrop-filter */
+@utility header-glass {
+  background-color: color-mix(in oklch, var(--background) 80%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: color-mix(in oklch, var(--background) 97%, transparent);
   }
 }
