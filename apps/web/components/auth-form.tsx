@@ -47,7 +47,6 @@ export function AuthForm({ mode }: { mode: Mode }) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <p className="text-sm font-medium text-primary">Sonar</p>
         <h1 className="text-3xl font-semibold tracking-tight">
           {isLogin ? "Connexion" : "Inscription"}
         </h1>
