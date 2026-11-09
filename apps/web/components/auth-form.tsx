@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/button";
 import { login, register } from "@/lib/api/client";
 import { destinationAfterAuth } from "@/lib/auth/safe-next";
 import { authFailureSentence } from "@/lib/auth/failure-copy";
+import {
+  validateAuthFields,
+  validateField,
+  type AuthField,
+  type AuthFieldErrors,
+} from "@/lib/auth/field-errors";
 
 const fieldClassName =
   "h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
@@ -24,7 +30,17 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const next = useSearchParams().get("next");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<AuthFieldErrors>({});
   const isLogin = mode === "login";
+
+  // Re-valide un champ déjà en erreur pour que le message disparaisse dès la correction.
+  function onFieldChange(field: AuthField, value: string) {
+    if (!fieldErrors[field]) return;
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: validateField(mode, field, value),
+    }));
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,6 +48,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
     const email = String(data.get("email") ?? "");
     const password = String(data.get("password") ?? "");
     setError(null);
+    const errors = validateAuthFields(mode, { email, password });
+    setFieldErrors(errors);
+    if (errors.email || errors.password) {
+      const first = errors.email ? "email" : "password";
+      document.getElementById(first)?.focus();
+      return;
+    }
     setPending(true);
     try {
       const credentials = { email, password };
@@ -57,7 +80,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </p>
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} noValidate className="space-y-4">
         <div className="space-y-1.5">
           <label htmlFor="email" className="text-sm font-medium">
             Email
@@ -67,9 +90,16 @@ export function AuthForm({ mode }: { mode: Mode }) {
             name="email"
             type="email"
             autoComplete="email"
-            required
+            aria-invalid={fieldErrors.email ? true : undefined}
+            aria-describedby={fieldErrors.email ? "email-error" : undefined}
+            onChange={(event) => onFieldChange("email", event.target.value)}
             className={fieldClassName}
           />
+          {fieldErrors.email ? (
+            <p id="email-error" className="text-sm text-destructive">
+              {fieldErrors.email}
+            </p>
+          ) : null}
         </div>
         <div className="space-y-1.5">
           <label htmlFor="password" className="text-sm font-medium">
@@ -80,10 +110,16 @@ export function AuthForm({ mode }: { mode: Mode }) {
             name="password"
             type="password"
             autoComplete={isLogin ? "current-password" : "new-password"}
-            required
-            minLength={isLogin ? undefined : 8}
+            aria-invalid={fieldErrors.password ? true : undefined}
+            aria-describedby={fieldErrors.password ? "password-error" : undefined}
+            onChange={(event) => onFieldChange("password", event.target.value)}
             className={fieldClassName}
           />
+          {fieldErrors.password ? (
+            <p id="password-error" className="text-sm text-destructive">
+              {fieldErrors.password}
+            </p>
+          ) : null}
         </div>
 
         {error ? (
