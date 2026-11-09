@@ -142,13 +142,15 @@ export default async function ExplorerPage({
               <p className="text-sm text-muted-foreground">
                 {formatTotal(data.hits)}
               </p>
-              <ul className="flex flex-col gap-4">
+              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {data.items.map((item, index) => (
                   <li
                     key={`${item.name}-${item.city}-${index}`}
-                    className="rounded-xl border border-border bg-card p-6 shadow-sm"
+                    className="card-lift h-full min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5"
                   >
-                    <h2 className="text-base font-medium">{item.name}</h2>
+                    <h2 className="text-base font-medium wrap-break-word">
+                      {item.name}
+                    </h2>
                     <p className="text-sm text-muted-foreground">{item.city}</p>
                     <p className="text-sm text-muted-foreground">
                       {item.activityLabel ?? NO_ACTIVITY_LABEL}

@@ -173,12 +173,14 @@ function PistesSkeleton() {
   return (
     <div role="status" aria-busy="true" className="space-y-3">
       <p className="text-sm text-muted-foreground">Chargement des pistes…</p>
-      {["a", "b", "c"].map((key) => (
-        <div
-          key={key}
-          className="h-28 animate-pulse rounded-xl border border-border bg-muted"
-        />
-      ))}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {["a", "b", "c", "d"].map((key) => (
+          <div
+            key={key}
+            className="h-32 animate-pulse rounded-xl border border-border bg-muted"
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -199,13 +201,15 @@ function PistesResults({
           {EMPTY_PISTES_MESSAGE}
         </p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {data.items.map((item) => (
-            <li key={`${item.companyId}:${item.rome}`}>
-              <article className="space-y-3 rounded-xl border border-border bg-card p-6 shadow-sm">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <h2 className="text-lg font-medium">{item.name}</h2>
+            <li key={`${item.companyId}:${item.rome}`} className="min-w-0">
+              <article className="card-lift flex h-full flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:p-5">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0 space-y-1">
+                    <h2 className="text-base font-medium wrap-break-word">
+                      {item.name}
+                    </h2>
                     <p className="text-sm text-muted-foreground">
                       {item.city ?? "Ville non renseignée"}
                     </p>
@@ -222,7 +226,7 @@ function PistesResults({
                     ? "non communiqué"
                     : `${formatHiringPotential(item.hiringPotential)} / 100`}
                 </p>
-                <Button type="button" disabled>
+                <Button type="button" disabled className="mt-auto w-fit">
                   Ajouter au CRM
                   <span className="text-xs font-normal">bientôt</span>
                 </Button>

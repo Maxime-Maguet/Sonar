@@ -52,7 +52,7 @@ Dégradé **sky -> indigo**, réservé au logo « Sonar » et à des accents pon
 
 Utilitaires (`globals.css`) : `text-brand` (texte en dégradé, utilisé par le logo), classes Tailwind `from-brand-from` / `to-brand-to`.
 
-Définis mais **pas encore utilisés** (appliqués par les tickets cartes / accueil) : `bg-brand-glow` (halo doux derrière un bloc d'accueil), `card-lift`, `--shadow-card`, `--shadow-card-hover`.
+Définis, `card-lift` et les ombres sont utilisés par les cartes d'entreprise (#46) ; **pas encore utilisé** (ticket accueil) : `bg-brand-glow` (halo doux derrière un bloc d'accueil).
 
 ## Ton et densité
 
@@ -60,7 +60,7 @@ Plus chaleureux et plus aéré : titres et marque plus grands, cartes avec ombre
 
 - Échelle de titres : marque `text-2xl lg:text-3xl font-bold` ; titre de page d'accueil `text-4xl font-semibold` ; titres de section `text-2xl font-semibold` ; corps `text-base` ; légendes `text-sm`/`text-xs`.
 - Conteneur large : `mx-auto w-full max-w-6xl px-6 md:px-8`, partagé par l'en-tête, le `main` et le pied de page (alignement identique). Mesure de lecture `max-w-3xl` à l'intérieur, alignée à gauche.
-- Ombres : `--shadow-card` (repos) et `--shadow-card-hover` (survol), définies dans un `@theme` simple, avec variante `.dark` plus forte (noir). Pas encore utilisées (tickets cartes / accueil).
+- Ombres : `--shadow-card` (repos) et `--shadow-card-hover` (survol), définies dans un `@theme` simple, avec variante `.dark` plus forte (noir). Utilisées par `card-lift` (#46).
 
 ## Radius
 
@@ -70,11 +70,19 @@ Plus chaleureux et plus aéré : titres et marque plus grands, cartes avec ombre
 
 Un seul langage : **lent et discret**, 300 ms, courbe `--ease-calm` (classe `ease-calm`).
 
-- Cartes cliquables : classe `card-lift` (monte de 2 px, ombre plus marquée, filet teinté de `--primary`), pas encore utilisée.
+- Cartes : classe `card-lift` (monte de 2 px, ombre plus marquée, filet teinté de `--primary`), voir « Cartes d'entreprise ».
 - Boutons : transition 300 ms sur couleur, ombre, filet et `transform` ; bouton principal prend `shadow-md` au survol. L'appui actif (1 px) est instantané sous mouvement réduit.
 - Liens du menu et logo : fondu de couleur 300 ms ; le logo s'éclaircit (`hover:brightness-110`) sans baisser le contraste.
 - Curseur : `pointer` sur tout `button`/`[role=button]` actif (règle globale), `not-allowed` sur les boutons natifs `:disabled` uniquement (le `Button` shadcn utilise `pointer-events-none`, donc pas de curseur). Les liens gardent le pointeur natif.
 - `prefers-reduced-motion: reduce` : plus de transition ni de déplacement (`motion-reduce:transition-none`, repli intégré à `card-lift`).
+
+## Cartes d'entreprise (ticket #46)
+
+Explorer (`<li>`) et Pistes (`<article>`) partagent le même gabarit.
+
+- Taille : grille `grid-cols-1 gap-3 sm:grid-cols-2` dans la mesure `max-w-3xl` (1 colonne à 390 px, 2 colonnes dès 640 px, environ 378 px par carte au bureau, 339 px en tablette à 768 px). Padding `p-4 sm:p-5` (avant : `p-6`), titre `text-base`. `h-full` pour des hauteurs égales par rangée, `min-w-0` et `wrap-break-word` pour qu'un nom très long ne déborde pas. Le squelette de Pistes reprend la même grille.
+- Survol : classe `card-lift` seule (remplace `shadow-sm`), lent et discret, immobile sous `prefers-reduced-motion`.
+- Curseur : **`cursor-pointer` uniquement si toute la carte est un lien**. Les cartes actuelles n'en sont pas : pas de pointeur. Le jour où une carte devient cliquable, envelopper le titre dans un `<a>` étiré (`after:absolute after:inset-0`) plutôt que rendre le `<li>` cliquable.
 
 ## En-tête
 
