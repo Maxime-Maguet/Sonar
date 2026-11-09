@@ -59,7 +59,7 @@ export function SiteHeader() {
   return (
     <header className="header-glass sticky top-0 z-40 border-b border-border">
       <nav aria-label="Navigation">
-        <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-6 text-sm md:px-8 lg:grid lg:h-16 lg:grid-cols-[1fr_auto_1fr] lg:gap-8">
+        <div className="flex h-14 w-full items-center justify-between gap-4 px-6 text-sm md:px-8 lg:px-12 lg:grid lg:h-16 lg:grid-cols-[1fr_auto_1fr] lg:gap-8">
           <BrandLink className="lg:justify-self-start" />
           <ul className="hidden items-center gap-x-5 lg:flex xl:gap-x-8">
             {NAV_ENTRIES.map((entry) => (
