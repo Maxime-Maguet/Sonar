@@ -16,7 +16,7 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t border-border">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-6 py-6 text-xs text-muted-foreground md:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-6 py-6 text-center text-xs text-muted-foreground md:px-8">
         {lines.map((line, i) => (
           <p key={i}>
             {line.map((segment, j) =>
@@ -38,7 +38,7 @@ export function SiteFooter() {
           </p>
         ))}
         {legal.length > 0 ? (
-          <ul className="flex flex-wrap gap-x-4 gap-y-1">
+          <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1">
             {legal.map((link) => (
               <li key={link.href}>
                 <Link href={link.href} className={`${LINK_CLASS} ${FOCUS}`}>
