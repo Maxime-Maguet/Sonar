@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { LeadsPage } from "@sonar/api-contract";
 import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/pagination";
 import { FooterSources } from "@/components/footer-sources";
 import { pistesFooterLines } from "@/lib/footer/footer-lines";
 import { listLeads } from "@/lib/api/client";
 import { ApiError } from "@/lib/api/errors";
+import { totalPages } from "@/lib/pagination/window";
 import { metierOptions } from "@/lib/pistes/metiers";
 import {
   classifyPistesLoadError,
@@ -191,9 +192,6 @@ function PistesResults({
   page: number;
   data: LeadsPage;
 }) {
-  const hasPrevious = page > 1;
-  const hasNext = page * data.pageSize < data.hits;
-
   return (
     <div className="space-y-4">
       {data.items.length === 0 ? (
@@ -234,29 +232,11 @@ function PistesResults({
         </ul>
       )}
 
-      <nav aria-label="Pagination" className="flex items-center gap-3 text-sm">
-        {hasPrevious ? (
-          <Link
-            href={pistesPath(rome, page - 1)}
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
-            Page précédente
-          </Link>
-        ) : (
-          <span className="text-muted-foreground">Page précédente</span>
-        )}
-        <span>Page {data.page}</span>
-        {hasNext ? (
-          <Link
-            href={pistesPath(rome, page + 1)}
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
-            Page suivante
-          </Link>
-        ) : (
-          <span className="text-muted-foreground">Page suivante</span>
-        )}
-      </nav>
+      <Pagination
+        page={page}
+        totalPages={totalPages(data.hits, data.pageSize)}
+        hrefForPage={(target) => pistesPath(rome, target)}
+      />
     </div>
   );
 }

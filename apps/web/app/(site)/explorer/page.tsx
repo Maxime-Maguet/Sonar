@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { CompaniesPage } from "@sonar/api-contract";
 import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/pagination";
 import { FooterSources } from "@/components/footer-sources";
 import { listCompanies } from "@/lib/api/server";
 import { explorerFooterLines } from "@/lib/explorer/footer-sources";
@@ -13,6 +13,7 @@ import {
   readExplorerQuery,
   type RawSearchParams,
 } from "@/lib/explorer/query";
+import { totalPages } from "@/lib/pagination/window";
 import {
   decideExplorerState,
   EXPLORER_MESSAGES,
@@ -25,8 +26,6 @@ export const metadata: Metadata = {
 
 const fieldClassName =
   "h-9 w-full cursor-pointer rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
-const linkClassName =
-  "font-medium text-primary underline-offset-4 hover:underline";
 const NO_ACTIVITY_LABEL = "Activité non renseignée";
 
 export default async function ExplorerPage({
@@ -157,32 +156,11 @@ export default async function ExplorerPage({
                   </li>
                 ))}
               </ul>
-              <nav
-                aria-label="Pagination"
-                className="flex items-center gap-3 text-sm"
-              >
-                {query.page > 1 ? (
-                  <Link
-                    href={explorerPath({ ...query, page: query.page - 1 })}
-                    className={linkClassName}
-                  >
-                    Précédent
-                  </Link>
-                ) : (
-                  <span className="text-muted-foreground">Précédent</span>
-                )}
-                <span>Page {query.page}</span>
-                {query.page * data.pageSize < data.hits ? (
-                  <Link
-                    href={explorerPath({ ...query, page: query.page + 1 })}
-                    className={linkClassName}
-                  >
-                    Suivant
-                  </Link>
-                ) : (
-                  <span className="text-muted-foreground">Suivant</span>
-                )}
-              </nav>
+              <Pagination
+                page={query.page}
+                totalPages={totalPages(data.hits, data.pageSize)}
+                hrefForPage={(page) => explorerPath({ ...query, page })}
+              />
             </div>
           ) : null}
         </div>
