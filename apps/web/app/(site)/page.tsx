@@ -61,7 +61,7 @@ const INNER = "mx-auto w-full max-w-6xl px-6 md:px-8";
 const PRIMARY_CLASS = cn(
   buttonVariants({ size: "lg" }),
   HOME_ACTION_SIZE_CLASS,
-  "font-semibold shadow-md hover:-translate-y-0.5 hover:shadow-lg active:translate-y-px motion-reduce:hover:translate-y-0",
+  "font-semibold shadow-md transition-[color,background-color,border-color,box-shadow,translate] duration-500 ease-in-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-px motion-reduce:hover:translate-y-0",
 );
 const BADGE_SOON =
   "inline-flex w-fit items-center rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground";
@@ -133,7 +133,7 @@ function FeatureCard({ feature }: { feature: HomeFeature }) {
 
   return (
     <li className={span}>
-      <article className="group relative flex h-full flex-col gap-3 rounded-xl border border-border bg-card p-6 card-lift before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:rounded-t-xl before:bg-linear-to-r before:from-brand-from before:to-brand-to before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100 has-focus-visible:ring-3 has-focus-visible:ring-ring/50 motion-reduce:before:transition-none">
+      <article className="group relative flex h-full flex-col gap-3 rounded-xl border border-border bg-card p-6 card-lift has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
         {header}
         <h3 className="text-lg font-semibold tracking-tight">
           <Link href={feature.href} className="outline-none after:absolute after:inset-0 after:rounded-xl">
