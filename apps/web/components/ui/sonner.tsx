@@ -10,13 +10,12 @@ export function Toaster(props: ToasterProps) {
   return (
     <Sonner
       theme={theme}
-      position="bottom-center"
+      position="bottom-right"
       duration={5000}
-      closeButton
       containerAriaLabel="Notifications"
-      toastOptions={{ closeButtonAriaLabel: "Fermer la notification" }}
       style={
         {
+          "--width": "20rem",
           "--normal-bg": "var(--popover)",
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
