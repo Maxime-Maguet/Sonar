@@ -1,8 +1,15 @@
-import { INSEE_SOURCE_LABEL } from "@/lib/pistes/etalab";
+import type { CompaniesPage, CompanyListItem } from "@sonar/api-contract";
+import {
+  INSEE_SOURCE_LABEL,
+  INSEE_SOURCE_URL,
+  LBB_SOURCE_LABEL,
+  LBB_SOURCE_URL,
+  UNOFFICIAL_NOTICE,
+} from "@/lib/pistes/etalab";
 import { signInHref } from "@/lib/navigation/navigation";
 import type { SessionState } from "@/lib/session/session";
 
-/** Textes de l'accueil. Aucun chiffre ni le mot « offre » : les nombres viennent de l'API. */
+/** Textes de l'accueil. Aucun chiffre ; « offre » seulement dans la FAQ qui la nie et dans « n'est pas une offre ». */
 export const HOME_BADGE = "Toulouse";
 export const HOME_TITLE = "Sonar";
 export const HOME_TAGLINE = "L'écosystème tech toulousain, enfin lisible.";
@@ -119,17 +126,22 @@ export function formatSyncDate(iso: string): string {
   }).format(new Date(iso));
 }
 
+/** Ligne de source Sirene, avec la date de MAJ quand elle est valide. */
+export function sirenSourceLine(syncedAt: string | null): string {
+  const hasValidDate = syncedAt !== null && !Number.isNaN(Date.parse(syncedAt));
+  const date = hasValidDate ? ` · mis à jour le ${formatSyncDate(syncedAt)}` : "";
+  return `Source : ${INSEE_SOURCE_LABEL}${date}`;
+}
+
 export function companiesCounter(summary: CompaniesSummary | null): HomeCounter {
   if (summary === null || !Number.isFinite(summary.hits) || summary.hits <= 0) {
     return { key: "companies", label: COMPANIES_LABEL, value: COUNTER_NO_DATA, caption: null };
   }
-  const hasValidDate = summary.syncedAt !== null && !Number.isNaN(Date.parse(summary.syncedAt));
-  const date = hasValidDate ? ` · mis à jour le ${formatSyncDate(summary.syncedAt as string)}` : "";
   return {
     key: "companies",
     label: COMPANIES_LABEL,
     value: new Intl.NumberFormat("fr-FR").format(summary.hits),
-    caption: `Source : ${INSEE_SOURCE_LABEL}${date}`,
+    caption: sirenSourceLine(summary.syncedAt),
   };
 }
 
@@ -154,3 +166,85 @@ export function secondaryAction(session: SessionState): SecondaryAction | null {
       return null;
   }
 }
+
+/** Nombre d'entreprises montrées dans l'aperçu de l'annuaire. */
+export const DIRECTORY_PREVIEW_COUNT = 4;
+export const DIRECTORY_EYEBROW = "L'annuaire";
+export const DIRECTORY_TITLE = "Un aperçu des entreprises tech de Toulouse";
+export const DIRECTORY_LINK = { label: "Voir tout l'annuaire", href: "/explorer" } as const;
+
+/** Réduit la réponse de GET /companies aux champs du compteur ; `null` si l'API a échoué. */
+export function companiesSummary(page: CompaniesPage | null): CompaniesSummary | null {
+  return page === null ? null : { hits: page.hits, syncedAt: page.syncedAt };
+}
+
+export type DirectoryPreview = { companies: CompanyListItem[]; sourceLine: string };
+
+/**
+ * Aperçu de l'annuaire : les premières entreprises, dans l'ordre de l'API (stable).
+ * `null` (bloc masqué) si l'API a échoué ou n'a rien renvoyé.
+ */
+export function directoryPreview(page: CompaniesPage | null): DirectoryPreview | null {
+  if (page === null || !Array.isArray(page.items) || page.items.length === 0) return null;
+  return {
+    companies: page.items.slice(0, DIRECTORY_PREVIEW_COUNT),
+    sourceLine: sirenSourceLine(page.syncedAt),
+  };
+}
+
+export const PISTE_EYEBROW = "Les pistes";
+export const PISTE_TITLE = "À quoi ressemble une piste";
+export const PISTE_SUBTITLE =
+  "Une piste est une entreprise qui peut embaucher, à approcher par candidature spontanée. Ce n'est pas une offre.";
+export const PISTE_MOCKUP = {
+  badge: "Exemple",
+  companyName: "Entreprise Exemple",
+  city: "Toulouse",
+  activity: "Activité de l'entreprise",
+  gaugeLabel: "Potentiel d'embauche fourni par La Bonne Boîte",
+  gaugeHint: "Le potentiel est affiché sur vos pistes une fois connecté.",
+  reminder: "Une piste n'est pas une offre : aucune annonce n'est publiée, le premier pas vous revient.",
+} as const;
+
+export const SOURCES_TITLE = "D'où viennent les données";
+export const SOURCES_INTRO = "Sonar s'appuie sur deux sources publiques.";
+export const HOME_SOURCES: readonly { label: string; description: string; href: string }[] = [
+  {
+    label: INSEE_SOURCE_LABEL,
+    description: "Le répertoire des entreprises, qui alimente l'annuaire.",
+    href: INSEE_SOURCE_URL,
+  },
+  {
+    label: LBB_SOURCE_LABEL,
+    description: "Les entreprises susceptibles de recruter, qui alimentent les pistes.",
+    href: LBB_SOURCE_URL,
+  },
+];
+export const SOURCES_LICENSE = "Ces données sont réutilisées sous Licence Ouverte Etalab.";
+export const SOURCES_UNOFFICIAL = UNOFFICIAL_NOTICE;
+
+export const FAQ_TITLE = "Questions fréquentes";
+export const HOME_FAQ: readonly { question: string; answer: string }[] = [
+  {
+    question: "Est-ce une offre d'emploi ?",
+    answer:
+      "Non. Une piste est une entreprise qui peut embaucher, pas une annonce : aucun poste n'est publié, le premier pas vous revient.",
+  },
+  {
+    question: "Sonar est-il un service officiel ?",
+    answer:
+      "Non. Sonar réutilise des données publiques de l'INSEE et de France Travail. C'est un projet personnel.",
+  },
+  {
+    question: "Pourquoi un compte pour les pistes ?",
+    answer:
+      "Les pistes viennent d'une API dont le nombre de requêtes est limité. Le compte protège ce quota.",
+  },
+  {
+    question: "Un employeur recrute-t-il forcément ?",
+    answer:
+      "Non. « Employeur » aide à découvrir une entreprise, ce n'est pas un signal de recrutement.",
+  },
+];
+
+export const ABOUT_TEXT = "Sonar est un projet personnel, réalisé dans le cadre d'un portfolio.";

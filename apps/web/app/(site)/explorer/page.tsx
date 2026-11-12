@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import type { CompaniesPage } from "@sonar/api-contract";
 import { Button } from "@/components/ui/button";
+import { CompanyCard } from "@/components/company-card";
 import { Pagination } from "@/components/pagination";
 import { FooterSources } from "@/components/footer-sources";
 import { listCompanies } from "@/lib/api/server";
@@ -26,7 +27,6 @@ export const metadata: Metadata = {
 
 const fieldClassName =
   "h-9 w-full cursor-pointer rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
-const NO_ACTIVITY_LABEL = "Activité non renseignée";
 
 export default async function ExplorerPage({
   searchParams,
@@ -144,18 +144,11 @@ export default async function ExplorerPage({
               </p>
               <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {data.items.map((item, index) => (
-                  <li
+                  <CompanyCard
                     key={`${item.name}-${item.city}-${index}`}
-                    className="card-lift h-full min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5"
-                  >
-                    <h2 className="text-base font-medium wrap-break-word">
-                      {item.name}
-                    </h2>
-                    <p className="text-sm text-muted-foreground">{item.city}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {item.activityLabel ?? NO_ACTIVITY_LABEL}
-                    </p>
-                  </li>
+                    company={item}
+                    className="card-lift"
+                  />
                 ))}
               </ul>
               <Pagination

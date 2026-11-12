@@ -10,15 +10,24 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
+import type { CompaniesPage } from "@sonar/api-contract";
+import { DirectoryPreview } from "@/components/home/directory-preview";
+import { FaqBlock } from "@/components/home/faq-block";
+import { PistePreview } from "@/components/home/piste-preview";
+import { SourcesBlock } from "@/components/home/sources-block";
 import { HomeSecondaryAction } from "@/components/home-secondary-action";
 import { buttonVariants } from "@/components/ui/button";
 import { listCompanies } from "@/lib/api/server";
 import {
+  ABOUT_TEXT,
+  companiesSummary,
   COUNTER_NO_DATA,
   COUNTER_SOON,
   COUNTERS_LABEL,
   CTA_TEXT,
   CTA_TITLE,
+  directoryPreview,
+  DIRECTORY_PREVIEW_COUNT,
   FEATURE_AVAILABLE_BADGE,
   FEATURE_SOON_BADGE,
   FEATURES_EYEBROW,
@@ -34,7 +43,6 @@ import {
   homeCounters,
   PRIMARY_ACTION,
   STEPS_TITLE,
-  type CompaniesSummary,
   type HomeCounter,
   type HomeFeature,
 } from "@/lib/home/home";
@@ -66,11 +74,10 @@ const PRIMARY_CLASS = cn(
 const BADGE_SOON =
   "inline-flex w-fit items-center rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground";
 
-/** Total et date de synchronisation ; `null` si l'API est injoignable (la page se charge quand même). */
-async function readCompaniesSummary(): Promise<CompaniesSummary | null> {
+/** Première page de l'annuaire ; `null` si l'API est injoignable (la page se charge quand même). */
+async function readCompaniesPage(): Promise<CompaniesPage | null> {
   try {
-    const page = await listCompanies({ page: 1, pageSize: 1 });
-    return { hits: page.hits, syncedAt: page.syncedAt };
+    return await listCompanies({ page: 1, pageSize: DIRECTORY_PREVIEW_COUNT });
   } catch {
     return null;
   }
@@ -154,7 +161,9 @@ function FeatureCard({ feature }: { feature: HomeFeature }) {
 }
 
 export default async function Home() {
-  const counters = homeCounters(await readCompaniesSummary());
+  const companiesPage = await readCompaniesPage();
+  const counters = homeCounters(companiesSummary(companiesPage));
+  const preview = directoryPreview(companiesPage);
 
   return (
     <main id="contenu" className="flex w-full flex-1 flex-col overflow-x-clip">
@@ -207,6 +216,10 @@ export default async function Home() {
         </div>
       </section>
 
+      {preview ? <DirectoryPreview preview={preview} className={INNER} /> : null}
+
+      <PistePreview className={INNER} />
+
       <section aria-labelledby="fonctions-titre" className="py-12 md:py-20">
         <div className={INNER}>
           <div className="mx-auto mb-10 max-w-2xl text-center">
@@ -244,6 +257,16 @@ export default async function Home() {
               ))}
             </ol>
           </div>
+        </div>
+      </section>
+
+      <SourcesBlock className={INNER} />
+
+      <FaqBlock className={INNER} />
+
+      <section aria-label="À propos" className="py-8 md:py-12">
+        <div className={INNER}>
+          <p className="mx-auto max-w-2xl text-center text-sm text-muted-foreground text-pretty">{ABOUT_TEXT}</p>
         </div>
       </section>
 
